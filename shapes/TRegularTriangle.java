@@ -112,6 +112,10 @@ public class TRegularTriangle extends TShape{
         graphics.setColor(this.lineColor);
         graphics.setStroke(new BasicStroke(this.strokeValue, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
         graphics.draw(this.regularTriangle);
+        if (this.fillColor != null) {
+            graphics.setColor(fillColor);
+            graphics.fill(this.regularTriangle);
+        }
 
     }
 

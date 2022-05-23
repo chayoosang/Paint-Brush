@@ -143,6 +143,10 @@ public class THexagon extends TShape {
         graphics.setColor(this.lineColor);
         graphics.setStroke(new BasicStroke(this.strokeValue, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
         graphics.draw(this.hexagon);
+        if (this.fillColor != null) {
+            graphics.setColor(fillColor);
+            graphics.fill(this.hexagon);
+        }
     }
 
 

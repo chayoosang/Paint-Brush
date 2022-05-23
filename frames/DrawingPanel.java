@@ -76,6 +76,8 @@ public class DrawingPanel extends JPanel {
 		this.setBackground(Color.WHITE);
 
 		this.transformer = null;
+		this.fillColor = null;
+		this.lineColor = Color.BLACK;
 	}
 
 	public boolean isUpdated() {

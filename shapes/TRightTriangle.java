@@ -111,6 +111,10 @@ public class TRightTriangle extends TShape {
         graphics.setColor(this.lineColor);
         graphics.setStroke(new BasicStroke(this.strokeValue, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
         graphics.draw(this.rightTriangle);
+        if (this.fillColor != null) {
+            graphics.setColor(fillColor);
+            graphics.fill(this.rightTriangle);
+        }
 
     }
 

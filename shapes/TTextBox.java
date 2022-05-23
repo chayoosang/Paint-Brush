@@ -1,10 +1,13 @@
 package shapes;
 
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 
 public class TTextBox extends TShape {
 
     private int preX, preY;
+    private Point2D textPoint;
     private String text;
 
     public TTextBox() {
@@ -26,6 +29,10 @@ public class TTextBox extends TShape {
 
         this.preX = x;
         this.preY = y;
+
+        this.fillColor = Color.BLACK;
+
+        this.textPoint = new Point2D.Double();
     }
 
     @Override
@@ -47,6 +54,12 @@ public class TTextBox extends TShape {
         } else {
             textBox.setFrame(textBox.getX(), textBox.getY(), x - textBox.getX(), y - textBox.getY());
         }
+        this.textPoint.setLocation(this.getBounds().getX() +2, this.getBounds().getY() + this.getBounds().getHeight() / 2 + 2);
+    }
+
+    public void transformShape(AffineTransform affineTransform) {
+        super.transformShape(affineTransform);
+        this.textPoint.setLocation(affineTransform.transform(this.textPoint, new Point2D.Double()));
     }
 
     public void inputText(String text) {
@@ -54,17 +67,21 @@ public class TTextBox extends TShape {
     }
 
     public void drawText(Graphics2D graphics) {
+        System.out.println(textPoint);
         graphics.setColor(this.lineColor);
-        graphics.drawString(this.getText(), (int) (this.getBounds().getX() + 2), (int) (this.getBounds().getY() + this.getBounds().getHeight() / 2 + 2));
+        graphics.drawString(this.getText(), (int) (this.textPoint.getX()), (int) (this.textPoint.getY()));
     }
 
     @Override
     public void draw(Graphics2D graphics) {
-        graphics.setColor(Color.black);
+        graphics.setColor(this.lineColor);
         graphics.draw(this.shape);
         graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
         if (this.text != null) {
-            drawText(graphics);
+            if (this.fillColor != null) {
+                graphics.setColor(fillColor);
+                drawText(graphics);
+            }
         }
     }
 
