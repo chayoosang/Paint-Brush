@@ -5,6 +5,7 @@ import global.Constants.ETools;
 import global.Constants.ETransformationStyle;
 import shapes.TSelection;
 import shapes.TShape;
+import shapes.TTextBox;
 import transformer.*;
 
 import javax.swing.*;
@@ -206,7 +207,14 @@ public class DrawingPanel extends JPanel {
 				if (eAnchor != null) {
 					cursor = eAnchor.getCursor();
 				} else {
-					cursor = new Cursor(Cursor.MOVE_CURSOR);
+					if (selectShape(x, y) instanceof TTextBox) {
+						if (((TTextBox) selectShape(x, y)).containText(x, y)) {
+							cursor = new Cursor(Cursor.MOVE_CURSOR);
+						}
+						cursor = new Cursor(Cursor.TEXT_CURSOR);
+					}else {
+						cursor = new Cursor(Cursor.MOVE_CURSOR);
+					}
 				}
 			}
 		}
@@ -225,9 +233,19 @@ public class DrawingPanel extends JPanel {
 					this.transformer = new Rotator(shape);
 					selected(shape);
 				} else if (shape.getSelectAnchors() == null) {
-					this.transformer = new Translator(shape);
-					selected(shape);
-				} else {
+					if (shape instanceof TTextBox) {
+						if (((TTextBox) shape).containText(x, y)) {
+							this.transformer = new Translator(shape);
+							selected(shape);
+						} else {
+							this.transformer = new Enter(shape);
+							selected(shape);
+						}
+					} else {
+						this.transformer = new Translator(shape);
+						selected(shape);
+					}
+				}  else {
 					this.transformer = new Resizer(shape);
 					selected(shape);
 				}
@@ -246,13 +264,24 @@ public class DrawingPanel extends JPanel {
 	public void prepareTransforming(int x, int y) {
 		Graphics2D graphics = (Graphics2D) this.getGraphics();
 		graphics.setXORMode(this.getBackground());
-		this.transformer.prepare(x, y, graphics);
+		if (this.transformer instanceof Enter) {
+			System.out.println("aa");
+			Enter enter = (Enter) this.transformer;
+			enter.prepareText(this.input);
+		} else {
+			this.transformer.prepare(x, y, graphics);
+		}
 	}
 
 	public void keepTransforming(int x, int y) {
 		Graphics2D graphics = (Graphics2D) this.getGraphics();
 		graphics.setXORMode(this.getBackground());
-		this.transformer.keep(x, y, graphics, this.getImage(), this.getCursor());
+		if (this.transformer instanceof Enter) {
+			Enter enter = (Enter) this.transformer;
+			enter.keepText(this.input, graphics, this.shapes);
+		} else {
+			this.transformer.keep(x, y, graphics, this.getImage(), this.getCursor());
+		}
 	}
 
 	public void continueTransform(int x, int y) {
@@ -354,7 +383,7 @@ public class DrawingPanel extends JPanel {
 		@Override
 		public void keyPressed(KeyEvent e) {
 			if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-//					drawingText();
+				keepTransforming(0, 0);
 			}
 		}
 

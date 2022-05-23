@@ -68,6 +68,39 @@ public class TTextBox extends TShape {
         }
     }
 
+    public boolean containText(int x, int y) {
+        int tx = (int) this.shape.getBounds().getX();
+        int ty = (int) this.shape.getBounds().getY();
+        int tw = (int) this.shape.getBounds().getWidth();
+        int th = (int) this.shape.getBounds().getHeight();
+
+        for (int i = tx; i <= tx + tw; i++) {
+            if (i == x && y == ty) {
+                return true;
+            }
+        }
+
+        for (int i = ty; i <= ty + th; i++) {
+            if (i == tx && y == i) {
+                return true;
+            }
+        }
+
+        for (int i = tx; i <= tx + tw; i++) {
+            if (i == x && y == ty + th) {
+                return true;
+            }
+        }
+
+        for (int i = ty; i <= ty + th; i++) {
+            if (i == tx + tw && y == i) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
 
 
 
