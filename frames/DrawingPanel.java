@@ -42,7 +42,8 @@ public class DrawingPanel extends JPanel {
 	private Graphics2D bufferGraphics;
 
 	private int strokeValue;
-	private Color color;
+	private Color lineColor;
+	private Color fillColor;
 
 	private ETools selectedTool;
 	private TShape currentShape;
@@ -131,8 +132,12 @@ public class DrawingPanel extends JPanel {
 		}
 	}
 
-	public void setColor(Color color) {
-		this.color = color;
+	public void setLineColor(Color lineColor) {
+		this.lineColor = lineColor;
+	}
+
+	public void setFillColor(Color fillColor) {
+		this.fillColor = fillColor;
 	}
 
 	public void setStroke(int strokeValue) {
@@ -143,8 +148,11 @@ public class DrawingPanel extends JPanel {
 	public void paint(Graphics graphics) {
 		Graphics2D graphics2D = (Graphics2D) graphics;
 		super.paint(graphics2D);
-		if (this.bufferImage != null) {
-			graphics2D.drawImage(this.bufferImage, 0, 0, null);
+//		if (this.bufferImage != null) {
+//			graphics2D.drawImage(this.bufferImage, 0, 0, null);
+//		}
+		for (TShape shape : shapes) {
+			shape.draw(graphics2D);
 		}
 
 	}
@@ -178,7 +186,7 @@ public class DrawingPanel extends JPanel {
 		Graphics2D graphics  = (Graphics2D) this.getGraphics();
 		graphics.setXORMode(this.getBackground());
 
-		if (this.currentShape != null) {
+		if (this.currentShape != null && !(this.currentShape instanceof TSelection)) {
 			this.currentShape.setSelected(false);
 			this.currentShape.drawAnchors(graphics);
 		}
@@ -226,6 +234,9 @@ public class DrawingPanel extends JPanel {
 			}
 		} else {
 			shape = this.selectedTool.getTool();
+			shape.setLineColor(this.lineColor);
+			shape.setFillColor(this.fillColor);
+			shape.setStrokeValue(this.strokeValue);
 			this.transformer = new Drawer(shape);
 			selected(shape);
 		}

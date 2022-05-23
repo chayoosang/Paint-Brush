@@ -93,6 +93,13 @@ public abstract class TShape implements Serializable {
           return this.anchors.getAnchors();
      }
 
+     public Color getFillColor() {
+          return fillColor;
+     }
+
+     public void setFillColor(Color fillColor) {
+          this.fillColor = fillColor;
+     }
 
      public abstract TShape clone();
 
@@ -126,6 +133,10 @@ public abstract class TShape implements Serializable {
           graphics.setColor(this.lineColor);
           graphics.setStroke(new BasicStroke(strokeValue, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
           graphics.draw(transformedShape);
+          if (this.fillColor != null) {
+               graphics.setColor(this.fillColor);
+               graphics.fill(transformedShape);
+          }
      }
 
      public void drawAnchors(Graphics2D graphics) {
