@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Vector;
 
 
-public abstract class TShape implements Serializable {
+public abstract class TShape implements Serializable, Cloneable {
 
      protected AffineTransform affineTransform;
 
@@ -25,9 +25,9 @@ public abstract class TShape implements Serializable {
           this.lineColor = Color.BLACK;
           this.fillColor = null;
           this.selected = false;
-          this.anchors = new TAnchors();
           this.affineTransform = new AffineTransform();
           this.affineTransform.setToIdentity();
+          this.anchors = new TAnchors();
      }
 
      public Color getLineColor() {

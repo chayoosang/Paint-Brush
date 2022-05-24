@@ -3,20 +3,20 @@ package menus;
 import frames.DrawingPanel;
 import frames.DrawingPanel.TimeShape;
 import global.Constants.EEditMenu;
-import shapes.TCurve;
 import shapes.TShape;
 import shapes.TTextBox;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.util.Vector;
 
 public class EditMenu extends JMenu {
 
     private DrawingPanel drawingPanel;
 
-    private TShape selectShape;
+    private TShape copyShape;
     private int redoTime;
     private int undoTime;
 
@@ -40,32 +40,36 @@ public class EditMenu extends JMenu {
 
     private void cut() {
         Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
-        this.selectShape = this.drawingPanel.getOnShape();
-        shapes.remove(this.selectShape);
+        this.copyShape = this.drawingPanel.getOnShape();
+        shapes.remove(this.copyShape);
         this.drawingPanel.setShapes(shapes);
     }
 
     private void copy() {
-        this.selectShape = this.drawingPanel.getOnShape();
+        this.copyShape = this.drawingPanel.getOnShape();
     }
 
     private void paste() {
-        if (this.selectShape != null) {
+        if (this.copyShape != null) {
             Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
-            TShape shape = this.selectShape.clone();
-            shape.setLineColor(this.selectShape.getLineColor());
-            shape.setStrokeValue(this.selectShape.getStrokeValue());
 
-            if (shape instanceof TTextBox && this.selectShape instanceof TTextBox) {
-                ((TTextBox) shape).setText(((TTextBox) this.selectShape).getText());
+            TShape shape = this.copyShape.clone();
+            shape.setShape(this.copyShape.getShape());
+            shape.setFillColor(this.copyShape.getFillColor());
+            shape.setLineColor(this.copyShape.getLineColor());
+            shape.setStrokeValue(this.copyShape.getStrokeValue());
+
+            if (shape instanceof TTextBox && this.copyShape instanceof TTextBox) {
+                ((TTextBox) shape).setText(((TTextBox) this.copyShape).getText());
             }
-            if (shape instanceof TCurve && this.selectShape instanceof TCurve) {
-                ((TCurve) shape).setPointX(((TCurve) this.selectShape).getPointX());
-                ((TCurve) shape).setPointY(((TCurve) this.selectShape).getPointY());
-            }
-//            shape.resizeShape(this.selectShape.getBounds());
-//            shape.resizeShape(shape.setLocation(0, 0));
+
+
+            AffineTransform affineTransform = new AffineTransform();
+            affineTransform.translate(this.copyShape.getBounds().getX() - 10, this.copyShape.getBounds().getY() - 10);
+            shape.transformShape(affineTransform);
+
             shapes.add(shape);
+
             this.drawingPanel.setShapes(shapes);
         }
     }

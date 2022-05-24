@@ -310,36 +310,6 @@ public class DrawingPanel extends JPanel {
 	}
 
 
-//
-//	private void prepareText() {
-//		if (this.onShape instanceof TTextBox) {
-//			this.input.setText(((TTextBox) this.onShape).getText());
-//			this.input.setBounds(this.onShape.getBounds());
-//			this.input.setVisible(true);
-//		}
-//	}
-//
-//	private void drawingText() {
-//		Graphics2D graphics  = (Graphics2D) this.getGraphics();
-//		this.input.setVisible(false);
-//
-//		String text = this.input.getText();
-//
-//
-//		if (this.onShape instanceof TTextBox) {
-//			((TTextBox) this.onShape).inputText(text);
-//			((TTextBox) this.onShape).drawText(graphics);
-//
-//			int index = shapes.indexOf(onShape);
-//			this.shapes.set(index, onShape);
-//			this.drawDoubleBuffer();
-//		}
-//	}
-//
-
-
-
-
 	private void drawDoubleBuffer() {
 		this.bufferImage = getImage();
 		this.bufferGraphics = (Graphics2D) this.bufferImage.getGraphics();
