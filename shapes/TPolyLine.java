@@ -3,7 +3,6 @@ package shapes;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.nio.channels.Pipe;
 import java.util.ArrayList;
 
 public class TPolyLine extends TShape{
@@ -21,6 +20,38 @@ public class TPolyLine extends TShape{
         this.sortY = new ArrayList<>();
         this.prePoints = new ArrayList<>();
         this.curPoints = new ArrayList<>();
+    }
+
+    public int[] getxPoints() {
+        return xPoints;
+    }
+
+    public void setxPoints(int[] xPoints) {
+        this.xPoints = xPoints;
+    }
+
+    public int[] getyPoints() {
+        return yPoints;
+    }
+
+    public void setyPoints(int[] yPoints) {
+        this.yPoints = yPoints;
+    }
+
+    public ArrayList<Integer> getSortX() {
+        return sortX;
+    }
+
+    public void setSortX(ArrayList<Integer> sortX) {
+        this.sortX = sortX;
+    }
+
+    public ArrayList<Integer> getSortY() {
+        return sortY;
+    }
+
+    public void setSortY(ArrayList<Integer> sortY) {
+        this.sortY = sortY;
     }
 
     @Override

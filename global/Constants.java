@@ -178,8 +178,32 @@ public class Constants {
 		public Rectangle2D getLine(){
 			return this.oval.getBounds2D();
 		}
-
-
-
 	}
+
+	public enum EPopupMenu{
+		eCut("잘라내기"),
+		eCopy("복사하기"),
+		ePaste("붙여넣기"),
+		eDelete("삭제하기"),
+		eGroup("그룹화"),
+		eUnGroup("그룹해제"),
+		eGeneralShape("기본 도형으로 설정"),
+		eSetFrame("크기 및 위치"),
+		eFront("맨 앞으로 가져오기"),
+		eBehind("맨 뒤로 보내기"),
+		eUndo("뒤로가기"),
+		eRedo("앞으로가기");
+
+		private String menuName;
+		EPopupMenu(String menuName){
+			this.menuName = menuName;
+		}
+
+		public String getMenuName() {
+			return menuName;
+		}
+	}
+
+
+
 }

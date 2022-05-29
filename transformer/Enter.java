@@ -8,8 +8,8 @@ import java.util.Vector;
 
 public class Enter extends Transformer{
 
-    public Enter(TShape selectShape) {
-        super(selectShape);
+    public Enter(TShape selectShape, Vector<TShape> selectShapes) {
+        super(selectShape, selectShapes);
     }
 
     @Override
@@ -18,7 +18,7 @@ public class Enter extends Transformer{
     }
 
     @Override
-    public void keep(int x, int y, Graphics2D graphics, Image image, Cursor cursor) {
+    public void keep(int x, int y, Graphics2D graphics, Image image) {
 
     }
 

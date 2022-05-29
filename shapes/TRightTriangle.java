@@ -3,6 +3,7 @@ package shapes;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public class TRightTriangle extends TShape {
 
@@ -20,7 +21,27 @@ public class TRightTriangle extends TShape {
         this.curP1 = new Point2D.Double();
         this.curP2 = new Point2D.Double();
         this.curP3 = new Point2D.Double();
+
+        this.first = true;
     }
+
+
+    public int[] getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(int[] xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    public int[] getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(int[] yPoint) {
+        this.yPoint = yPoint;
+    }
+
     @Override
     public TShape clone() {
         return new TRightTriangle();
@@ -35,11 +56,11 @@ public class TRightTriangle extends TShape {
         this.preX = x;
         this.preY = y;
 
-        this.first = true;
+
     }
 
     private void setPoint() {
-        Rectangle rectangle = (Rectangle) this.shape;
+        Rectangle2D rectangle = this.shape.getBounds2D();
         xPoint[0] = (int) rectangle.getX();
         yPoint[0] = (int) rectangle.getY();
         xPoint[1] = (int) rectangle.getX();
@@ -57,6 +78,11 @@ public class TRightTriangle extends TShape {
 
     public void transformShape(AffineTransform affineTransform) {
         super.transformShape(affineTransform);
+
+        if (first == true) {
+            setPoint();
+            first = false;
+        }
 
         affineTransform.transform(preP1, curP1);
         affineTransform.transform(preP2, curP2);

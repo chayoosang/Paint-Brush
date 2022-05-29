@@ -8,8 +8,8 @@ import java.util.Vector;
 
 public class Translator extends Transformer {
 
-    public Translator(TShape selectShape) {
-        super(selectShape);
+    public Translator(TShape selectShape , Vector<TShape> selectShapes) {
+        super(selectShape, selectShapes);
     }
 
     @Override
@@ -20,15 +20,28 @@ public class Translator extends Transformer {
     }
 
     @Override
-    public void keep(int x, int y, Graphics2D graphics, Image image, Cursor cursor) {
+    public void keep(int x, int y, Graphics2D graphics, Image image) {
 
-        this.selectShape.draw(graphics);
 
-        AffineTransform affineTransform = new AffineTransform();
-        affineTransform.setToTranslation(x - this.previous.getX(), y - this.previous.getY());
-        this.selectShape.transformShape(affineTransform);
+        if (!this.selectShapes.isEmpty()) {
+            for (TShape shape : this.selectShapes) {
+                shape.draw(graphics);
 
-        this.selectShape.draw(graphics);
+                AffineTransform affineTransform = new AffineTransform();
+                affineTransform.setToTranslation(x - this.previous.getX(), y - this.previous.getY());
+                shape.transformShape(affineTransform);
+
+                shape.draw(graphics);
+            }
+        } else {
+            this.selectShape.draw(graphics);
+
+            AffineTransform affineTransform = new AffineTransform();
+            affineTransform.setToTranslation(x - this.previous.getX(), y - this.previous.getY());
+            this.selectShape.transformShape(affineTransform);
+
+            this.selectShape.draw(graphics);
+        }
 
         this.previous.setLocation(x, y);
         graphics.drawImage(image, 0, 0, null);
@@ -37,7 +50,14 @@ public class Translator extends Transformer {
 
     @Override
     public void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes) {
-        int index = shapes.indexOf(this.selectShape);
-        shapes.set(index, this.selectShape);
+        if (!this.selectShapes.isEmpty()) {
+            for (TShape shape : this.selectShapes) {
+                int index = shapes.indexOf(shape);
+                shapes.set(index, shape);
+            }
+        } else {
+            int index = shapes.indexOf(this.selectShape);
+            shapes.set(index, this.selectShape);
+        }
     }
 }

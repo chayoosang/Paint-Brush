@@ -11,8 +11,8 @@ import java.util.Vector;
 
 public class Resizer extends Transformer {
 
-    public Resizer(TShape selectShape) {
-        super(selectShape);
+    public Resizer(TShape selectShape, Vector<TShape> selectShapes) {
+        super(selectShape, selectShapes);
     }
 
     @Override
@@ -21,24 +21,37 @@ public class Resizer extends Transformer {
     }
 
     @Override
-    public void keep(int x, int y, Graphics2D graphics, Image image, Cursor cursor) {
-        this.selectShape.draw(graphics);
-
+    public void keep(int x, int y, Graphics2D graphics, Image image) {
         AffineTransform affineTransform = new AffineTransform();
-        Point2D resizeOrigin = this.getResizeAnchor();
-        affineTransform.translate(resizeOrigin.getX(), resizeOrigin.getY());
-        Point2D scaleFactor = computeScaleFactor(this.previous, new Point2D.Double(x, y),cursor);
-        affineTransform.scale(scaleFactor.getX(), scaleFactor.getY());
-        affineTransform.translate(-resizeOrigin.getX(), -resizeOrigin.getY());
+        Point2D scaleFactor = computeScaleFactor(this.previous, new Point2D.Double(x, y));
 
-        this.selectShape.transformShape(affineTransform);
+        if (!this.selectShapes.isEmpty()) {
+            for (TShape shape : this.selectShapes) {
+                shape.setSelectAnchors(this.selectShape.getSelectAnchors());
+                shape.draw(graphics);
+                Point2D resizeOrigin = this.getResizeAnchor(shape);
+                affineTransform.translate(resizeOrigin.getX(), resizeOrigin.getY());
+                affineTransform.scale(scaleFactor.getX(), scaleFactor.getY());
+                affineTransform.translate(-resizeOrigin.getX(), -resizeOrigin.getY());
+                shape.transformShape(affineTransform);
+                shape.draw(graphics);
+            }
+        } else {
+            this.selectShape.draw(graphics);
+            Point2D resizeOrigin = this.getResizeAnchor(this.selectShape);
+            affineTransform.translate(resizeOrigin.getX(), resizeOrigin.getY());
+            affineTransform.scale(scaleFactor.getX(), scaleFactor.getY());
+            affineTransform.translate(-resizeOrigin.getX(), -resizeOrigin.getY());
+            this.selectShape.transformShape(affineTransform);
+            this.selectShape.draw(graphics);
+        }
 
-        this.selectShape.draw(graphics);
+
         this.previous.setLocation(x, y);
         graphics.drawImage(image, 0, 0, null);
     }
 
-    public Point2D computeScaleFactor(Point2D previous, Point2D current, Cursor cursor) {
+    public Point2D computeScaleFactor(Point2D previous, Point2D current) {
         double px = previous.getX();
         double py = previous.getY();
         double cx = current.getX();
@@ -47,36 +60,36 @@ public class Resizer extends Transformer {
         double pw = 0;
         double ph = 0;
 
-        switch (cursor.getType()) {
-            case Cursor.NW_RESIZE_CURSOR:
+        switch (this.selectShape.getSelectAnchors()) {
+            case eNW:
                 pw = -(cx - px);
                 ph = -(cy - py);
                 break;
-            case Cursor.W_RESIZE_CURSOR:
+            case eWW:
                 pw = -(cx - px);
                 ph = 0;
                 break;
-            case Cursor.SW_RESIZE_CURSOR:
+            case eSW:
                 pw = -(cx - px);
                 ph = cy - py;
                 break;
-            case Cursor.N_RESIZE_CURSOR:
+            case eNN:
                 pw = 0;
                 ph = -(cy - py);
                 break;
-            case Cursor.S_RESIZE_CURSOR:
+            case eSS:
                 pw = 0;
                 ph = cy - py;
                 break;
-            case Cursor.NE_RESIZE_CURSOR:
+            case eNE:
                 pw = cx - px;
                 ph = -(cy - py);
                 break;
-            case Cursor.E_RESIZE_CURSOR:
+            case eEE:
                 pw = cx - px;
                 ph = 0;
                 break;
-            case Cursor.SE_RESIZE_CURSOR:
+            case eSE:
                 pw = cx - px;
                 ph = cy - py;
                 break;
@@ -96,34 +109,34 @@ public class Resizer extends Transformer {
     }
 
 
-    private Point getResizeAnchor() {
+    private Point getResizeAnchor(TShape shape) {
         Point resizeAnchor = new Point();
 
-        if (this.selectShape.getSelectAnchors() == EAnchors.eNW) {
-            resizeAnchor.setLocation(this.selectShape.getAnchors().get(EAnchors.eSE.ordinal()).getX(),
-                    this.selectShape.getAnchors().get(EAnchors.eSE.ordinal()).getY());
+        if (shape.getSelectAnchors() == EAnchors.eNW) {
+            resizeAnchor.setLocation(shape.getAnchors().get(EAnchors.eSE.ordinal()).getX(),
+                    shape.getAnchors().get(EAnchors.eSE.ordinal()).getY());
 
-        } else if (this.selectShape.getSelectAnchors() == EAnchors.eNE) {
-            resizeAnchor.setLocation(this.selectShape.getAnchors().get(EAnchors.eSW.ordinal()).getX(),
-                    this.selectShape.getAnchors().get(EAnchors.eSW.ordinal()).getY());
+        } else if (shape.getSelectAnchors() == EAnchors.eNE) {
+            resizeAnchor.setLocation(shape.getAnchors().get(EAnchors.eSW.ordinal()).getX(),
+                    shape.getAnchors().get(EAnchors.eSW.ordinal()).getY());
 
-        }else if (this.selectShape.getSelectAnchors() == EAnchors.eNN) {
-            resizeAnchor.setLocation(0, this.selectShape.getAnchors().get(EAnchors.eSS.ordinal()).getY());
-        }else if (this.selectShape.getSelectAnchors() == EAnchors.eSS) {
-            resizeAnchor.setLocation(0,this.selectShape.getAnchors().get(EAnchors.eNN.ordinal()).getY());
+        }else if (shape.getSelectAnchors() == EAnchors.eNN) {
+            resizeAnchor.setLocation(0, shape.getAnchors().get(EAnchors.eSS.ordinal()).getY());
+        }else if (shape.getSelectAnchors() == EAnchors.eSS) {
+            resizeAnchor.setLocation(0,shape.getAnchors().get(EAnchors.eNN.ordinal()).getY());
 
-        }else if (this.selectShape.getSelectAnchors() == EAnchors.eWW) {
-            resizeAnchor.setLocation(this.selectShape.getAnchors().get(EAnchors.eEE.ordinal()).getX(), 0);
-        }else if (this.selectShape.getSelectAnchors() == EAnchors.eEE) {
-            resizeAnchor.setLocation(this.selectShape.getAnchors().get(EAnchors.eWW.ordinal()).getX(),0);
+        }else if (shape.getSelectAnchors() == EAnchors.eWW) {
+            resizeAnchor.setLocation(shape.getAnchors().get(EAnchors.eEE.ordinal()).getX(), 0);
+        }else if (shape.getSelectAnchors() == EAnchors.eEE) {
+            resizeAnchor.setLocation(shape.getAnchors().get(EAnchors.eWW.ordinal()).getX(),0);
 
-        }else if (this.selectShape.getSelectAnchors() == EAnchors.eSW) {
-            resizeAnchor.setLocation(this.selectShape.getAnchors().get(EAnchors.eNE.ordinal()).getX(),
-                    this.selectShape.getAnchors().get(EAnchors.eNE.ordinal()).getY());
+        }else if (shape.getSelectAnchors() == EAnchors.eSW) {
+            resizeAnchor.setLocation(shape.getAnchors().get(EAnchors.eNE.ordinal()).getX(),
+                    shape.getAnchors().get(EAnchors.eNE.ordinal()).getY());
 
-        }else if (this.selectShape.getSelectAnchors() == EAnchors.eSE) {
-            resizeAnchor.setLocation(this.selectShape.getAnchors().get(EAnchors.eNW.ordinal()).getX(),
-                    this.selectShape.getAnchors().get(EAnchors.eNW.ordinal()).getY());
+        }else if (shape.getSelectAnchors() == EAnchors.eSE) {
+            resizeAnchor.setLocation(shape.getAnchors().get(EAnchors.eNW.ordinal()).getX(),
+                    shape.getAnchors().get(EAnchors.eNW.ordinal()).getY());
         }
 
 

@@ -3,6 +3,7 @@ package shapes;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public class THexagon extends TShape {
     private final int MAX_POINT = 6;
@@ -29,6 +30,22 @@ public class THexagon extends TShape {
         this.first = true;
     }
 
+    public int[] getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(int[] xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    public int[] getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(int[] yPoint) {
+        this.yPoint = yPoint;
+    }
+
     @Override
     public TShape clone() {
         return new THexagon();
@@ -39,16 +56,12 @@ public class THexagon extends TShape {
         Rectangle rectangle = (Rectangle) this.shape;
         rectangle.setFrame(x, y, 0, 0);
 
-
         this.preX = x;
         this.preY = y;
-
-
-
     }
 
     private void setPoint() {
-        Rectangle hexagon = (Rectangle) this.shape;
+        Rectangle2D hexagon = this.shape.getBounds2D();
         xPoint[0] = (int) (hexagon.getX() + hexagon.getWidth() / 4);
         yPoint[0] = (int) (hexagon.getY());
         xPoint[1] = (int) (hexagon.getX() + 3 * hexagon.getWidth() / 4);
@@ -75,6 +88,11 @@ public class THexagon extends TShape {
 
     public void transformShape(AffineTransform affineTransform) {
         super.transformShape(affineTransform);
+
+        if (first == true) {
+            setPoint();
+            first = false;
+        }
 
         affineTransform.transform(pre1, cur1);
         affineTransform.transform(pre2, cur2);

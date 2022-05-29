@@ -3,10 +3,10 @@ package menus;
 import frames.DrawingPanel;
 import frames.DrawingPanel.TimeShape;
 import global.Constants.EEditMenu;
-import shapes.TShape;
-import shapes.TTextBox;
+import shapes.*;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -16,12 +16,16 @@ public class EditMenu extends JMenu {
 
     private DrawingPanel drawingPanel;
 
-    private TShape copyShape;
+    private Vector<TShape> copyShapes;
     private int redoTime;
     private int undoTime;
 
+    private int px;
+    private int py;
+
     public EditMenu(String s) {
         super(s);
+        this.copyShapes = new Vector<>();
         this.undoTime = -9999;
         this.redoTime = -9999;
         ActionHandler actionHandler = new ActionHandler();
@@ -32,6 +36,8 @@ public class EditMenu extends JMenu {
             jMenuItem.setAccelerator(editMenu.getKeyStroke());
             this.add(jMenuItem);
         }
+        this.px = 10;
+        this.py = 10;
     }
 
     public void associate(DrawingPanel drawingPanel) {
@@ -40,43 +46,114 @@ public class EditMenu extends JMenu {
 
     private void cut() {
         Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
-        this.copyShape = this.drawingPanel.getOnShape();
-        shapes.remove(this.copyShape);
+        Vector<TShape> selectShapes = this.drawingPanel.getSelectShapes();
+        this.copyShapes.removeAllElements();
+        this.px = 10;
+        this.py = 10;
+
+        if (!selectShapes.isEmpty()) {
+            for (TShape shape : selectShapes) {
+                this.copyShapes.add(shape);
+                shapes.remove(shape);
+            }
+        } else {
+            TShape shape = this.drawingPanel.getCurrentShape();
+            this.copyShapes.add(shape);
+            shapes.remove(shape);
+        }
+
         this.drawingPanel.setShapes(shapes);
     }
 
     private void copy() {
-        this.copyShape = this.drawingPanel.getOnShape();
+        Vector<TShape> selectShapes = this.drawingPanel.getSelectShapes();
+        this.copyShapes.removeAllElements();
+        this.px = 10;
+        this.py = 10;
+
+        if (!selectShapes.isEmpty()) {
+            for (TShape shape : selectShapes) {
+                this.copyShapes.add(shape);
+            }
+        } else {
+            TShape shape = this.drawingPanel.getCurrentShape();
+            this.copyShapes.add(shape);
+        }
     }
 
     private void paste() {
-        if (this.copyShape != null) {
+        if (!this.copyShapes.isEmpty()) {
             Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
 
-            TShape shape = this.copyShape.clone();
-            shape.setShape(this.copyShape.getShape());
-            shape.setFillColor(this.copyShape.getFillColor());
-            shape.setLineColor(this.copyShape.getLineColor());
-            shape.setStrokeValue(this.copyShape.getStrokeValue());
+            for (TShape shape : this.copyShapes) {
+                TShape copyShape = shape.clone();
+                copyShape.setShape(shape.getShape());
+                copyShape.setFillColor(shape.getFillColor());
+                copyShape.setLineColor(shape.getLineColor());
+                copyShape.setStrokeValue(shape.getStrokeValue());
+                copyShape.setSelected(false);
 
-            if (shape instanceof TTextBox && this.copyShape instanceof TTextBox) {
-                ((TTextBox) shape).setText(((TTextBox) this.copyShape).getText());
+                if (copyShape instanceof TTextBox && shape instanceof TTextBox) {
+                    ((TTextBox) copyShape).setText(((TTextBox) shape).getText());
+                } else if (copyShape instanceof TPolyLine && shape instanceof TPolyLine) {
+                    ((TPolyLine) copyShape).setxPoints(((TPolyLine) shape).getxPoints());
+                    ((TPolyLine) copyShape).setyPoints(((TPolyLine) shape).getyPoints());
+                    ((TPolyLine) copyShape).setSortX(((TPolyLine) shape).getSortX());
+                    ((TPolyLine) copyShape).setSortY(((TPolyLine) shape).getSortY());
+                } else if (copyShape instanceof TRegularTriangle && shape instanceof TRegularTriangle) {
+                    ((TRegularTriangle) copyShape).setxPoint(((TRegularTriangle) shape).getxPoint());
+                    ((TRegularTriangle) copyShape).setyPoint(((TRegularTriangle) shape).getyPoint());
+                }else if (copyShape instanceof TRightTriangle && shape instanceof TRightTriangle) {
+                    ((TRightTriangle) copyShape).setxPoint(((TRightTriangle) shape).getxPoint());
+                    ((TRightTriangle) copyShape).setyPoint(((TRightTriangle) shape).getyPoint());
+                }else if (copyShape instanceof TPentagon && shape instanceof TPentagon) {
+                    ((TPentagon) copyShape).setxPoint(((TPentagon) shape).getxPoint());
+                    ((TPentagon) copyShape).setyPoint(((TPentagon) shape).getyPoint());
+                }else if (copyShape instanceof THexagon && shape instanceof THexagon) {
+                    ((THexagon) copyShape).setxPoint(((THexagon) shape).getxPoint());
+                    ((THexagon) copyShape).setyPoint(((THexagon) shape).getyPoint());
+                }
+
+                AffineTransform affineTransform = new AffineTransform();
+                affineTransform.setToIdentity();
+                affineTransform.translate(px, py);
+                copyShape.transformShape(affineTransform);
+
+                shapes.add(copyShape);
+
+                this.drawingPanel.setShapes(shapes);
+                this.px += 10;
+                this.py += 10;
             }
 
 
-            AffineTransform affineTransform = new AffineTransform();
-            affineTransform.translate(this.copyShape.getBounds().getX() - 10, this.copyShape.getBounds().getY() - 10);
-            shape.transformShape(affineTransform);
-
-            shapes.add(shape);
-
-            this.drawingPanel.setShapes(shapes);
         }
     }
 
     private void delete() {
+        Graphics2D graphics = (Graphics2D) this.drawingPanel.getGraphics();
+        graphics.setXORMode(Color.white);
+
         Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
-        shapes.remove(this.drawingPanel.getOnShape());
+        Vector<TShape> selectShapes = this.drawingPanel.getSelectShapes();
+        this.copyShapes.removeAllElements();
+        this.px = 10;
+        this.py = 10;
+
+        if (!selectShapes.isEmpty()) {
+            for (TShape shape : selectShapes) {
+                if (shape.isSelected()) {
+                    shape.drawAnchors(graphics);
+                }
+                shapes.remove(shape);
+            }
+        } else {
+            TShape shape = this.drawingPanel.getCurrentShape();
+            if (shape.isSelected()) {
+                shape.drawAnchors(graphics);
+            }
+            shapes.remove(shape);
+        }
         this.drawingPanel.setShapes(shapes);
     }
 

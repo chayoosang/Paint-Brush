@@ -1,7 +1,13 @@
 package frames;
 
+import global.Constants;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 public class MainFrame extends JFrame{
 	//attribute
@@ -17,11 +23,13 @@ public class MainFrame extends JFrame{
 	private Color color;
 
 
+
 	public MainFrame() {
 		// attributes
 		super("그림판");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.setSize(600, 600);
+
 
 		//components
 		BorderLayout layoutManager = new BorderLayout();
@@ -44,10 +52,19 @@ public class MainFrame extends JFrame{
 		this.menuBar.associate(this.drawingPanel);
 
 
+
+
+
 	}
 
 	public void setDrawingPanel(DrawingPanel drawingPanel) {
 		this.drawingPanel = drawingPanel;
 	}
+
+
+
+
+
+
 }
 

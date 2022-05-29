@@ -1,8 +1,7 @@
 package frames;
 
-import global.Constants.EAnchors;
-import global.Constants.ETools;
-import global.Constants.ETransformationStyle;
+import global.Constants.*;
+import menus.PopUpMenu;
 import shapes.TSelection;
 import shapes.TShape;
 import shapes.TTextBox;
@@ -11,6 +10,7 @@ import transformer.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
 import java.util.Vector;
 
 
@@ -36,6 +36,7 @@ public class DrawingPanel extends JPanel {
 	private boolean update;
 
 	private Vector<TShape> shapes;
+	private Vector<TShape> selectShapes;
 	private Vector<TimeShape> undoShape;
 	private Vector<TimeShape> redoShape;
 
@@ -50,6 +51,10 @@ public class DrawingPanel extends JPanel {
 	private TShape currentShape;
 	private TextField input;
 	private Transformer transformer;
+	private PopUpMenu popupMenu;
+
+
+
 
 
 
@@ -60,14 +65,22 @@ public class DrawingPanel extends JPanel {
 
 		this.input = new TextField();
 		this.input.setVisible(false);
-
 		this.input.addKeyListener(myKeyHandler);
 		this.add(this.input);
 
 		this.shapes = new Vector<>();
+		this.selectShapes = new Vector<>();
 		this.undoShape = new Vector<>();
 		this.redoShape = new Vector<>();
 		this.strokeValue = 1;
+
+		this.transformer = null;
+		this.fillColor = null;
+		this.lineColor = Color.BLACK;
+
+		this.popupMenu = new PopUpMenu(this);
+		this.initPopupMenu(this.popupMenu);
+		this.add(popupMenu);
 
 		MouseHandler mouseHandler = new MouseHandler();
 		this.addMouseListener(mouseHandler);
@@ -75,9 +88,6 @@ public class DrawingPanel extends JPanel {
 		this.addMouseWheelListener(mouseHandler);
 		this.setBackground(Color.WHITE);
 
-		this.transformer = null;
-		this.fillColor = null;
-		this.lineColor = Color.BLACK;
 	}
 
 	public boolean isUpdated() {
@@ -116,7 +126,11 @@ public class DrawingPanel extends JPanel {
 		return  this.shapes;
 	}
 
-	public TShape getOnShape() {
+	public Vector<TShape> getSelectShapes() {
+		return selectShapes;
+	}
+
+	public TShape getCurrentShape() {
 		return currentShape;
 	}
 
@@ -146,6 +160,12 @@ public class DrawingPanel extends JPanel {
 	public void setStroke(int strokeValue) {
 		this.strokeValue = strokeValue;
 	}
+
+	public void initPopupMenu(PopupMenu popupMenu) {
+
+	}
+
+
 
 	@Override
 	public void paint(Graphics graphics) {
@@ -185,11 +205,59 @@ public class DrawingPanel extends JPanel {
 		return null;
 	}
 
-	private void selected(TShape selectShape) {
+
+	private void selectShape(TShape currentShape) {
+		Graphics2D graphics  = (Graphics2D) this.getGraphics();
+		graphics.setXORMode(this.getBackground());
+
+
+		for (TShape shape : this.shapes) {
+			if (shape.getBounds().getX() >= currentShape.getBounds().getX() && shape.getBounds().getY() >= currentShape.getBounds().getY()
+					&& shape.getBounds().getX() + shape.getBounds().getWidth() <= currentShape.getBounds().getX() + currentShape.getBounds().getWidth()
+					&& shape.getBounds().getY() + shape.getBounds().getHeight() <= currentShape.getBounds().getY() + currentShape.getBounds().getHeight()) {
+				if (!shape.isSelected()) {
+					shape.drawAnchors(graphics);
+				}
+				shape.setSelected(true);
+				this.selectShapes.add(shape);
+			}
+		}
+	}
+
+
+	private void removeSelectShapes() {
 		Graphics2D graphics  = (Graphics2D) this.getGraphics();
 		graphics.setXORMode(this.getBackground());
 
 		if (this.currentShape != null && !(this.currentShape instanceof TSelection)) {
+			this.currentShape.setSelected(false);
+			this.currentShape.drawAnchors(graphics);
+		}
+
+		for (TShape shape : this.selectShapes) {
+			if (shape.isSelected()) {
+				shape.setSelected(false);
+				shape.drawAnchors(graphics);
+			}
+		}
+	}
+
+	private void removeSelectShapesAnchors() {
+		Graphics2D graphics  = (Graphics2D) this.getGraphics();
+		graphics.setXORMode(this.getBackground());
+
+		for (TShape shape : this.selectShapes) {
+				shape.drawAnchors(graphics);
+		}
+
+	}
+
+
+	private void selected(TShape selectShape) {
+		Graphics2D graphics  = (Graphics2D) this.getGraphics();
+		graphics.setXORMode(this.getBackground());
+
+		if (this.currentShape != null && !(this.currentShape instanceof TSelection) && this.selectShapes.isEmpty()) {
 			this.currentShape.setSelected(false);
 			this.currentShape.drawAnchors(graphics);
 		}
@@ -201,15 +269,17 @@ public class DrawingPanel extends JPanel {
 
 
 	private void changeCursor(int x, int y) {
+
 		Cursor cursor = new Cursor(Cursor.DEFAULT_CURSOR);
 		if (this.selectedTool == ETools.eSelection) {
 			cursor = new Cursor(Cursor.CROSSHAIR_CURSOR);
 			if (onShape(x, y)) {
-				EAnchors eAnchor = this.currentShape.getSelectAnchors();
+				TShape shape = selectShape(x, y);
+				EAnchors eAnchor = shape.getSelectAnchors();
 				if (eAnchor != null) {
 					cursor = eAnchor.getCursor();
 				} else {
-					if (selectShape(x, y) instanceof TTextBox) {
+					if (shape instanceof TTextBox) {
 						if (((TTextBox) selectShape(x, y)).containText(x, y)) {
 							cursor = new Cursor(Cursor.MOVE_CURSOR);
 						}
@@ -224,31 +294,33 @@ public class DrawingPanel extends JPanel {
 	}
 
 	public void selectDraw(int x, int y) {
-
 		TShape shape = selectShape(x, y);
 		if (selectedTool == ETools.eSelection) {
 			if (shape == null) {
+				this.removeSelectShapes();
+				this.selectShapes.removeAllElements();
 				this.currentShape = this.selectedTool.getTool();
-				this.transformer = new Drawer(this.currentShape);
+				this.transformer = new Drawer(this.currentShape, this.selectShapes);
 			} else {
+				this.removeSelectShapesAnchors();
 				if (shape.getSelectAnchors() == EAnchors.eRR) {
-					this.transformer = new Rotator(shape);
+					this.transformer = new Rotator(shape, this.selectShapes);
 					selected(shape);
 				} else if (shape.getSelectAnchors() == null) {
 					if (shape instanceof TTextBox) {
 						if (((TTextBox) shape).containText(x, y)) {
-							this.transformer = new Translator(shape);
+							this.transformer = new Translator(shape, this.selectShapes);
 							selected(shape);
 						} else {
-							this.transformer = new Enter(shape);
+							this.transformer = new Enter(shape, this.selectShapes);
 							selected(shape);
 						}
 					} else {
-						this.transformer = new Translator(shape);
+						this.transformer = new Translator(shape, this.selectShapes);
 						selected(shape);
 					}
 				}  else {
-					this.transformer = new Resizer(shape);
+					this.transformer = new Resizer(shape, this.selectShapes);
 					selected(shape);
 				}
 			}
@@ -257,7 +329,7 @@ public class DrawingPanel extends JPanel {
 			shape.setLineColor(this.lineColor);
 			shape.setFillColor(this.fillColor);
 			shape.setStrokeValue(this.strokeValue);
-			this.transformer = new Drawer(shape);
+			this.transformer = new Drawer(shape, this.selectShapes);
 			selected(shape);
 		}
 
@@ -267,7 +339,6 @@ public class DrawingPanel extends JPanel {
 		Graphics2D graphics = (Graphics2D) this.getGraphics();
 		graphics.setXORMode(this.getBackground());
 		if (this.transformer instanceof Enter) {
-			System.out.println("aa");
 			Enter enter = (Enter) this.transformer;
 			enter.prepareText(this.input);
 		} else {
@@ -282,7 +353,7 @@ public class DrawingPanel extends JPanel {
 			Enter enter = (Enter) this.transformer;
 			enter.keepText(this.input, graphics, this.shapes);
 		} else {
-			this.transformer.keep(x, y, graphics, this.getImage(), this.getCursor());
+			this.transformer.keep(x, y, graphics, this.getImage());
 		}
 	}
 
@@ -297,10 +368,21 @@ public class DrawingPanel extends JPanel {
 		graphics.setXORMode(this.getBackground());
 
 		if (this.currentShape instanceof TSelection) {
-			repaint();
+			AffineTransform affineTransform = new AffineTransform();
+			affineTransform.scale(-100000, -100000);
+			this.currentShape.draw(graphics);
+			selectShape(this.currentShape);
+			this.currentShape.transformShape(affineTransform);
+			this.currentShape.draw(graphics);
 		} else {
 			this.transformer.finish(x,y,graphics, shapes);
-			this.currentShape.drawAnchors(graphics);
+			if (!this.selectShapes.isEmpty()) {
+				for (TShape shape : selectShapes) {
+					shape.drawAnchors(graphics);
+				}
+			} else {
+				this.currentShape.drawAnchors(graphics);
+			}
 //			this.undoShape.add(new TimeShape(this.currentShape, this.currentShape.getBounds()));
 //			this.redoShape.add(new TimeShape(this.currentShape, this.currentShape.getBounds()));
 			this.drawDoubleBuffer();
@@ -310,6 +392,7 @@ public class DrawingPanel extends JPanel {
 	}
 
 
+
 	private void drawDoubleBuffer() {
 		this.bufferImage = getImage();
 		this.bufferGraphics = (Graphics2D) this.bufferImage.getGraphics();
@@ -317,6 +400,11 @@ public class DrawingPanel extends JPanel {
 			shape.draw(this.bufferGraphics);
 		}
 	}
+
+	private void showPopUpMenu(int x, int y) {
+		this.popupMenu.show(this, x, y);
+	}
+
 
 	public class TimeShape {
 		private TShape shape;
@@ -334,7 +422,6 @@ public class DrawingPanel extends JPanel {
 		public Rectangle getRectangle() {
 			return rectangle;
 		}
-
 	}
 
 
@@ -377,6 +464,10 @@ public class DrawingPanel extends JPanel {
 				} else if (e.getClickCount() == 2) {
 					lButtonDoubleClick(e);
 				}
+			} else if (e.getButton() == MouseEvent.BUTTON3) {
+				if (e.getClickCount() == 1) {
+					RButtonClick(e);
+				}
 			}
 		}
 
@@ -396,6 +487,10 @@ public class DrawingPanel extends JPanel {
 				finishTransforming(e.getX(), e.getY());
 				edrawingState = EDrawingState.eIdle;
 			}
+		}
+
+		private void RButtonClick(MouseEvent e) {
+			showPopUpMenu(e.getX(), e.getY());
 		}
 
 		@Override

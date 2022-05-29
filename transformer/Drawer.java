@@ -8,8 +8,8 @@ import java.util.Vector;
 
 public class Drawer extends Transformer {
 
-    public Drawer(TShape selectShape) {
-        super(selectShape);
+    public Drawer(TShape selectShape, Vector<TShape> selectShapes) {
+        super(selectShape, selectShapes);
     }
 
     @Override
@@ -19,7 +19,7 @@ public class Drawer extends Transformer {
     }
 
     @Override
-    public void keep(int x, int y, Graphics2D graphics, Image image, Cursor cursor) {
+    public void keep(int x, int y, Graphics2D graphics, Image image) {
         this.selectShape.draw(graphics);
         this.selectShape.resize(x, y);
         this.selectShape.draw(graphics);

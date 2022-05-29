@@ -12,6 +12,7 @@ public class TTextBox extends TShape {
 
     public TTextBox() {
         this.shape = new Rectangle();
+        this.textPoint = new Point2D.Double();
     }
 
     public String getText() {
@@ -31,8 +32,6 @@ public class TTextBox extends TShape {
         this.preY = y;
 
         this.fillColor = Color.BLACK;
-
-        this.textPoint = new Point2D.Double();
     }
 
     @Override

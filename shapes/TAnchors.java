@@ -32,6 +32,10 @@ public class TAnchors implements Serializable {
         return this.eSelectedAnchor;
     }
 
+    public void setSelectedAnchor(EAnchors eSelectedAnchor) {
+        this.eSelectedAnchor = eSelectedAnchor;
+    }
+
     private void computeCoordinate(Rectangle2D r) {
         for (EAnchors eAnchors : EAnchors.values()) {
             eAnchors.setLine(r.getBounds());

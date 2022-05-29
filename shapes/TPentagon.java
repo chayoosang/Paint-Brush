@@ -3,6 +3,7 @@ package shapes;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 public class TPentagon extends TShape {
 
@@ -29,10 +30,27 @@ public class TPentagon extends TShape {
         this.first = true;
     }
 
+    public int[] getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(int[] xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    public int[] getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(int[] yPoint) {
+        this.yPoint = yPoint;
+    }
+
     @Override
     public TShape clone() {
         return new TPentagon();
     }
+
 
     @Override
     public void prepareDrawing(int x, int y) {
@@ -44,7 +62,7 @@ public class TPentagon extends TShape {
     }
 
     private void setPoint() {
-        Rectangle rectangle = (Rectangle) this.shape;
+        Rectangle2D rectangle = this.shape.getBounds2D();
         xPoint[0] = (int) rectangle.getX();
         yPoint[0] = (int) (rectangle.getY() + rectangle.getHeight() / 3);
         xPoint[1] = (int) (rectangle.getX() + rectangle.getWidth() / 2);
@@ -69,6 +87,11 @@ public class TPentagon extends TShape {
 
     public void transformShape(AffineTransform affineTransform) {
         super.transformShape(affineTransform);
+
+        if (first == true) {
+            setPoint();
+            first = false;
+        }
 
         affineTransform.transform(pre1, cur1);
         affineTransform.transform(pre2, cur2);

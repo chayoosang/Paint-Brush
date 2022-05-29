@@ -1,11 +1,13 @@
 package shapes;
 
-import global.Constants.*;
+import global.Constants.EAnchors;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.Point2D;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Vector;
 
 
@@ -18,6 +20,8 @@ public abstract class TShape implements Serializable, Cloneable {
      protected Color lineColor, fillColor;
      protected int strokeValue;
 
+     private ArrayList<Double> angleList;
+
      private boolean selected;
      protected int selectX, selectY, centerX, centerY;
 
@@ -28,6 +32,7 @@ public abstract class TShape implements Serializable, Cloneable {
           this.affineTransform = new AffineTransform();
           this.affineTransform.setToIdentity();
           this.anchors = new TAnchors();
+          this.angleList = new ArrayList<>();
      }
 
      public Color getLineColor() {
@@ -85,6 +90,9 @@ public abstract class TShape implements Serializable, Cloneable {
           this.selected = selected;
      }
 
+     public void setSelectAnchors(EAnchors eAnchors) {
+          this.anchors.setSelectedAnchor(eAnchors);
+     }
      public EAnchors getSelectAnchors() {
           return this.anchors.getSelectedAnchor();
      }
@@ -99,6 +107,14 @@ public abstract class TShape implements Serializable, Cloneable {
 
      public void setFillColor(Color fillColor) {
           this.fillColor = fillColor;
+     }
+
+     public void addAngle(double angle) {
+          this.angleList.add(angle);
+     }
+
+     public ArrayList<Double> getAngleList() {
+          return angleList;
      }
 
      public abstract TShape clone();
@@ -129,13 +145,12 @@ public abstract class TShape implements Serializable, Cloneable {
           this.centerX = this.shape.getBounds().x + this.shape.getBounds().width / 2;
           this.centerY = this.shape.getBounds().y + this.shape.getBounds().height / 2;
 
-          Shape transformedShape = this.affineTransform.createTransformedShape(this.shape);
           graphics.setColor(this.lineColor);
           graphics.setStroke(new BasicStroke(strokeValue, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
-          graphics.draw(transformedShape);
+          graphics.draw(this.shape);
           if (this.fillColor != null) {
                graphics.setColor(this.fillColor);
-               graphics.fill(transformedShape);
+               graphics.fill(this.shape);
           }
      }
 

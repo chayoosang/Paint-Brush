@@ -20,7 +20,26 @@ public class TRegularTriangle extends TShape{
         this.curP1 = new Point2D.Double();
         this.curP2 = new Point2D.Double();
         this.curP3 = new Point2D.Double();
+
+        this.first = true;
     }
+
+    public int[] getxPoint() {
+        return xPoint;
+    }
+
+    public void setxPoint(int[] xPoint) {
+        this.xPoint = xPoint;
+    }
+
+    public int[] getyPoint() {
+        return yPoint;
+    }
+
+    public void setyPoint(int[] yPoint) {
+        this.yPoint = yPoint;
+    }
+
     @Override
     public TShape clone() {
         return new TRegularTriangle();
@@ -34,7 +53,7 @@ public class TRegularTriangle extends TShape{
 
         this.preX = x;
         this.preY = y;
-        this.first = true;
+
     }
 
     private void setPoint() {
@@ -59,6 +78,11 @@ public class TRegularTriangle extends TShape{
 
     public void transformShape(AffineTransform affineTransform) {
         super.transformShape(affineTransform);
+
+        if (first == true) {
+            setPoint();
+            first = false;
+        }
 
         affineTransform.transform(preP1, curP1);
         affineTransform.transform(preP2, curP2);

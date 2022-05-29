@@ -9,8 +9,8 @@ import java.util.Vector;
 
 public class Rotator extends Transformer {
 
-    public Rotator(TShape selectShape) {
-        super(selectShape);
+    public Rotator(TShape selectShape, Vector<TShape> selectShapes) {
+        super(selectShape, selectShapes);
     }
 
     @Override
@@ -34,23 +34,47 @@ public class Rotator extends Transformer {
         return angle;
     }
     @Override
-    public void keep(int x, int y, Graphics2D graphics, Image image, Cursor cursor) {
-        this.selectShape.draw(graphics);
-        AffineTransform affineTransform = new AffineTransform();
+    public void keep(int x, int y, Graphics2D graphics, Image image) {
+
         double rotateAngle = computeAngle(this.center, this.previous, new Point2D.Double(x, y));
-        affineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX(), center.getY());
-        this.selectShape.transformShape(affineTransform);
+        if (!this.selectShapes.isEmpty()) {
+            for (TShape shape : this.selectShapes) {
+                AffineTransform affineTransform = new AffineTransform();
+                shape.draw(graphics);
+                this.center.setLocation(
+                        shape.getCenterX(),
+                        shape.getCenterY()
+                );
+                shape.addAngle(rotateAngle);
+                affineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX(), center.getY());
+                shape.transformShape(affineTransform);
+                shape.draw(graphics);
+            }
+        } else {
+            AffineTransform affineTransform = new AffineTransform();
+            this.selectShape.draw(graphics);
+            this.selectShape.addAngle(rotateAngle);
+            affineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX(), center.getY());
+            this.selectShape.transformShape(affineTransform);
+            this.selectShape.draw(graphics);
 
-        this.selectShape.draw(graphics);
+        }
+
         this.previous.setLocation(x, y);
-
         graphics.drawImage(image, 0, 0, null);
     }
 
     @Override
     public void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes) {
+        if (!this.selectShapes.isEmpty()) {
+            for (TShape shape : this.selectShapes) {
+                int index = shapes.indexOf(shape);
+                shapes.set(index, shape);
+            }
+        } else {
+            int index = shapes.indexOf(this.selectShape);
+            shapes.set(index, this.selectShape);
+        }
 
-        int index = shapes.indexOf(this.selectShape);
-		shapes.set(index, this.selectShape);
     }
 }
