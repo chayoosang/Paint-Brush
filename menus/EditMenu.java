@@ -84,6 +84,8 @@ public class EditMenu extends JMenu {
     private void paste() {
         if (!this.copyShapes.isEmpty()) {
             Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
+            Graphics2D graphics = (Graphics2D) this.drawingPanel.getGraphics();
+            graphics.setXORMode(this.drawingPanel.getBackground());
 
             for (TShape shape : this.copyShapes) {
                 TShape copyShape = shape.clone();
@@ -118,12 +120,15 @@ public class EditMenu extends JMenu {
                 affineTransform.setToIdentity();
                 affineTransform.translate(px, py);
                 copyShape.transformShape(affineTransform);
+                copyShape.draw(graphics);
 
                 shapes.add(copyShape);
 
                 this.drawingPanel.setShapes(shapes);
                 this.px += 10;
                 this.py += 10;
+
+
             }
 
 

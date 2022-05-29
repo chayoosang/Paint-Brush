@@ -1,7 +1,6 @@
 package shapes;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
 
 public class TRectangle extends TShape {
 
@@ -15,7 +14,6 @@ public class TRectangle extends TShape {
     public void prepareDrawing(int x, int y){
         Rectangle rectangle = (Rectangle) this.shape;
         rectangle.setFrame(x, y, 0, 0);
-
 
         this.preX = x;
         this.preY = y;

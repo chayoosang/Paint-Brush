@@ -2,6 +2,7 @@ package frames;
 
 import global.Constants.*;
 import menus.PopUpMenu;
+import shapes.TRectangle;
 import shapes.TSelection;
 import shapes.TShape;
 import shapes.TTextBox;
@@ -11,6 +12,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.Vector;
 
 
@@ -37,6 +39,8 @@ public class DrawingPanel extends JPanel {
 
 	private Vector<TShape> shapes;
 	private Vector<TShape> selectShapes;
+	private Vector<TShape> groupShapes;
+
 	private Vector<TimeShape> undoShape;
 	private Vector<TimeShape> redoShape;
 
@@ -79,7 +83,6 @@ public class DrawingPanel extends JPanel {
 		this.lineColor = Color.BLACK;
 
 		this.popupMenu = new PopUpMenu(this);
-		this.initPopupMenu(this.popupMenu);
 		this.add(popupMenu);
 
 		MouseHandler mouseHandler = new MouseHandler();
@@ -100,10 +103,10 @@ public class DrawingPanel extends JPanel {
 
 	@SuppressWarnings("unchecked")
 	public void setShapes(Object shapes) {
+		this.removeSelectShapesAnchors();
 		this.shapes = (Vector<TShape>) shapes;
 		this.edrawingState = EDrawingState.eIdle;
 		this.drawDoubleBuffer();
-		this.repaint();
 	}
 
 	public Vector<TimeShape> getUndoShape() {
@@ -161,11 +164,9 @@ public class DrawingPanel extends JPanel {
 		this.strokeValue = strokeValue;
 	}
 
-	public void initPopupMenu(PopupMenu popupMenu) {
-
+	public void setCurrentShape(TShape currentShape) {
+		this.currentShape = currentShape;
 	}
-
-
 
 	@Override
 	public void paint(Graphics graphics) {
@@ -242,12 +243,12 @@ public class DrawingPanel extends JPanel {
 		}
 	}
 
-	private void removeSelectShapesAnchors() {
+	public void removeSelectShapesAnchors() {
 		Graphics2D graphics  = (Graphics2D) this.getGraphics();
 		graphics.setXORMode(this.getBackground());
 
 		for (TShape shape : this.selectShapes) {
-				shape.drawAnchors(graphics);
+			shape.drawAnchors(graphics);
 		}
 
 	}
@@ -261,6 +262,7 @@ public class DrawingPanel extends JPanel {
 			this.currentShape.setSelected(false);
 			this.currentShape.drawAnchors(graphics);
 		}
+
 
 		this.currentShape = selectShape;
 		this.currentShape.setSelected(true);
@@ -378,7 +380,9 @@ public class DrawingPanel extends JPanel {
 			this.transformer.finish(x,y,graphics, shapes);
 			if (!this.selectShapes.isEmpty()) {
 				for (TShape shape : selectShapes) {
-					shape.drawAnchors(graphics);
+					if (shape.isSelected()) {
+						shape.drawAnchors(graphics);
+					}
 				}
 			} else {
 				this.currentShape.drawAnchors(graphics);
