@@ -14,21 +14,35 @@ public class TAnchors implements Serializable {
 
     private Vector<Ellipse2D.Double> anchors;
     private EAnchors eSelectedAnchor;
+    private Vector<Point2D> prePoint;
 
+    private AffineTransform affineTransform;
     private boolean first;
+    private boolean line;
 
     @SuppressWarnings("unused")
     public TAnchors() {
         this.anchors = new Vector<>();
-        for (EAnchors eAnchor: EAnchors.values()) {
+        for (EAnchors eAnchor : EAnchors.values()) {
             this.anchors.add(new Ellipse2D.Double(0, 0, ANCHOR_W, ANCHOR_H));
         }
         this.eSelectedAnchor = null;
         this.first = true;
+        this.prePoint = new Vector<>();
+        this.affineTransform = new AffineTransform();
+        this.affineTransform.setToIdentity();
+        this.line = false;
     }
 
+    public boolean isLine() {
+        return line;
+    }
 
-    public EAnchors getSelectedAnchor(){
+    public void setLine(boolean line) {
+        this.line = line;
+    }
+
+    public EAnchors getSelectedAnchor() {
         return this.eSelectedAnchor;
     }
 
@@ -36,7 +50,17 @@ public class TAnchors implements Serializable {
         this.eSelectedAnchor = eSelectedAnchor;
     }
 
-    private void computeCoordinate(Rectangle2D r) {
+    public void setChangePoint() {
+        for (Ellipse2D anchor : anchors) {
+            this.prePoint.add(affineTransform.transform(new Point2D.Double(anchor.getX(), anchor.getY()), new Point2D.Double()));
+        }
+    }
+
+    public Vector<Point2D> getPrePoint() {
+        return prePoint;
+    }
+
+    public void computeCoordinate(Rectangle2D r) {
         for (EAnchors eAnchors : EAnchors.values()) {
             eAnchors.setLine(r.getBounds());
             this.anchors.get(eAnchors.ordinal()).setFrame(eAnchors.getLine());
@@ -47,33 +71,64 @@ public class TAnchors implements Serializable {
 
     public void transformShape(AffineTransform affineTransform) {
         Dimension2D dimension = new Dimension(ANCHOR_W, ANCHOR_H);
+
         for (Ellipse2D anchor : anchors) {
             anchor.setFrame(affineTransform.transform(new Point2D.Double(anchor.getX(), anchor.getY()), new Point2D.Double()), dimension);
         }
+//        this.affineTransform.concatenate(affineTransform);
     }
 
-    public void draw(Graphics2D g2D, Rectangle2D rectangle) {
+
+    public void draw(Graphics2D graphics, Rectangle2D rectangle) {
         if (this.first == true) {
             computeCoordinate(rectangle);
             this.first = false;
         }
-        for (Ellipse2D.Double anchor: this.anchors) {
-            Color color = g2D.getColor();
-            g2D.setColor(g2D.getBackground());
-            g2D.fill(anchor);
-            g2D.setColor(color);
-            g2D.draw(anchor);
-        }
-    }
 
-    public boolean contains(int x, int y) {
-        for (int i = 0; i< anchors.size(); i++) {
-            if (anchors.get(i).contains(x, y)) {
-                this.eSelectedAnchor = EAnchors.values()[i];
-                return true;
+        if (this.line != true) {
+            for (Ellipse2D.Double anchor : this.anchors) {
+                graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
+                graphics.setColor(Color.white);
+                graphics.fill(anchor);
+                graphics.setColor(Color.black);
+                graphics.draw(anchor);
+            }
+        } else {
+            for (int i = 0; i < this.anchors.size(); i++) {
+                if (i == EAnchors.eNW.ordinal() || i == EAnchors.eSE.ordinal() || i == EAnchors.eRR.ordinal()) {
+                    graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
+                    graphics.setColor(Color.white);
+                    graphics.fill(anchors.get(i));
+                    graphics.setColor(Color.black);
+                    graphics.draw(anchors.get(i));
+                }
             }
         }
-        this.eSelectedAnchor = null;
+
+
+    }
+
+
+    public boolean anchorContains(int x, int y) {
+        if (this.line != true) {
+            for (int i = 0; i < anchors.size(); i++) {
+                if (this.affineTransform.createTransformedShape(anchors.get(i)).contains(x, y)) {
+                    this.eSelectedAnchor = EAnchors.values()[i];
+                    return true;
+                }
+            }
+            this.eSelectedAnchor = null;
+            return false;
+        } else {
+            for (int i = 0; i < anchors.size(); i++) {
+                if (i == EAnchors.eNW.ordinal() || i == EAnchors.eSE.ordinal() || i == EAnchors.eRR.ordinal()) {
+                    if (this.affineTransform.createTransformedShape(anchors.get(i)).contains(x, y)) {
+                        this.eSelectedAnchor = EAnchors.values()[i];
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -83,5 +138,11 @@ public class TAnchors implements Serializable {
     }
 
 
-
+    public Vector<Shape> getChangeAnchors() {
+        Vector<Shape> changAnchors = new Vector<>();
+        for (Ellipse2D anchor : anchors) {
+            changAnchors.add(this.affineTransform.createTransformedShape(anchor));
+        }
+        return changAnchors;
+    }
 }

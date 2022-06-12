@@ -1,13 +1,7 @@
 package frames;
 
-import global.Constants;
-
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 public class MainFrame extends JFrame{
 	//attribute
@@ -28,8 +22,8 @@ public class MainFrame extends JFrame{
 		// attributes
 		super("그림판");
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.setSize(600, 600);
-
+		this.setSize(1000, 700);
+		this.setLocation(100, 100);
 
 		//components
 		BorderLayout layoutManager = new BorderLayout();
@@ -47,14 +41,6 @@ public class MainFrame extends JFrame{
 		this.toolBar = new ToolBar();
 		this.add(toolBar, BorderLayout.NORTH);
 
-		//association
-		this.toolBar.associate(this.drawingPanel);
-		this.menuBar.associate(this.drawingPanel);
-
-
-
-
-
 	}
 
 	public void setDrawingPanel(DrawingPanel drawingPanel) {
@@ -62,9 +48,10 @@ public class MainFrame extends JFrame{
 	}
 
 
-
-
-
-
+    public void init() {
+		this.toolBar.init(this.drawingPanel);
+		this.menuBar.init(this.drawingPanel);
+		this.drawingPanel.init();
+    }
 }
 

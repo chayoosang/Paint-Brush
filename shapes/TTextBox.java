@@ -9,6 +9,8 @@ public class TTextBox extends TShape {
     private int preX, preY;
     private Point2D textPoint;
     private String text;
+    private String fontString;
+    private Font font;
 
     public TTextBox() {
         this.shape = new Rectangle();
@@ -32,6 +34,10 @@ public class TTextBox extends TShape {
         this.preY = y;
 
         this.fillColor = Color.BLACK;
+    }
+
+    public void setFont(String fontString) {
+        this.font = new Font(fontString, Font.PLAIN, 11);
     }
 
     @Override
@@ -66,19 +72,16 @@ public class TTextBox extends TShape {
     }
 
     public void drawText(Graphics2D graphics) {
-        System.out.println(textPoint);
         graphics.setColor(this.lineColor);
         graphics.drawString(this.getText(), (int) (this.textPoint.getX()), (int) (this.textPoint.getY()));
     }
 
     @Override
     public void draw(Graphics2D graphics) {
-        graphics.setColor(this.lineColor);
         graphics.draw(this.shape);
-        graphics.setStroke(new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
         if (this.text != null) {
-            if (this.fillColor != null) {
-                graphics.setColor(fillColor);
+            if (this.fillColor != null) {;
+                graphics.setFont(font);
                 drawText(graphics);
             }
         }

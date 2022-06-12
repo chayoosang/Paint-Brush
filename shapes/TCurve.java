@@ -21,22 +21,6 @@ public class TCurve extends TShape {
         this.pointY = new ArrayList<>();
     }
 
-    public ArrayList<Point> getPointX() {
-        return pointX;
-    }
-
-    public void setPointX(ArrayList<Point> pointX) {
-        this.pointX = pointX;
-    }
-
-    public ArrayList<Point> getPointY() {
-        return pointY;
-    }
-
-    public void setPointY(ArrayList<Point> pointY) {
-        this.pointY = pointY;
-    }
-
     @Override
     public void prepareDrawing(int x, int y) {
         this.count = 0;
@@ -92,26 +76,11 @@ public class TCurve extends TShape {
         }
     }
 
-    public boolean getFinishPoint() {
-        return this.finishPoint;
-    }
-
 
     @Override
     public TShape clone() {
         return new TCurve();
     }
-
-
-
-
-    private void sortPoints() {
-        Collections.sort(this.pointX);
-        Collections.sort(this.pointY);
-    }
-
-
-
 
 
     private class Point implements Comparable<Point>, Serializable {

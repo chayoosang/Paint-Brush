@@ -27,10 +27,12 @@ public class Constants {
 		eRightTriangle("직삼각형", new TRightTriangle(), new ImageIcon("src/media/rightTriangle.png"), ETransformationStyle.e2PTransformation),
 		ePentagon("오각형", new TPentagon(), new ImageIcon("src/media/polygon.png"), ETransformationStyle.e2PTransformation),
 		eHexagon("육각형", new THexagon(), new ImageIcon("src/media/hexagon.png"), ETransformationStyle.e2PTransformation),
+		ePen("펜", new TPen(), new ImageIcon("src/media/polyline.png"), ETransformationStyle.e2PTransformation),
 		eLine("직선", new TLine(),  new ImageIcon("src/media/line.png"), ETransformationStyle.e2PTransformation),
 		ePolyLine("다각선", new TPolyLine(),new ImageIcon("src/media/polyline.png"), ETransformationStyle.eNPTransformation),
 		eCurve("곡선", new TCurve(), new ImageIcon("src/media/curve.png"), ETransformationStyle.eNPTransformation),
-		eText("텍스트", new TTextBox(), new ImageIcon("src/media/textbox.png"), ETransformationStyle.e2PTransformation),;
+		eText("텍스트", new TTextBox(), new ImageIcon("src/media/textbox.png"), ETransformationStyle.e2PTransformation),
+		eImage("이미지", new TImage(), new ImageIcon("src/media/image.png"), ETransformationStyle.e2PTransformation),;
 
 		private final String label;
 		private final TShape tool;

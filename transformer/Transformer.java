@@ -1,6 +1,7 @@
 package transformer;
 
-import global.Constants.EAnchors;
+import frames.DrawingPanel;
+import frames.DrawingPanel.TimeShape;
 import shapes.TShape;
 
 import java.awt.*;
@@ -24,7 +25,7 @@ public abstract class Transformer {
 
     public abstract void keep(int x, int y, Graphics2D graphics, Image image);
 
-    public abstract void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes);
+    public abstract void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes, Vector<TimeShape> timeShapes);
 
     public void continueTransform(int x, int y, Graphics2D graphics2D) {
     }

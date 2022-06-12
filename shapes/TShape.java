@@ -5,9 +5,7 @@ import global.Constants.EAnchors;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
-import java.awt.geom.Point2D;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Vector;
 
 
@@ -16,14 +14,12 @@ public abstract class TShape implements Serializable, Cloneable {
      protected AffineTransform affineTransform;
 
      protected Shape shape;
-     private TAnchors anchors;
+     protected TAnchors anchors;
      protected Color lineColor, fillColor;
      protected int strokeValue;
-
-     private ArrayList<Double> angleList;
-
+     private double angle;
      private boolean selected;
-     protected int selectX, selectY, centerX, centerY;
+     private boolean first;
 
      public TShape() {
           this.lineColor = Color.BLACK;
@@ -32,7 +28,8 @@ public abstract class TShape implements Serializable, Cloneable {
           this.affineTransform = new AffineTransform();
           this.affineTransform.setToIdentity();
           this.anchors = new TAnchors();
-          this.angleList = new ArrayList<>();
+          this.angle = 0;
+          this.first = true;
      }
 
      public Color getLineColor() {
@@ -59,27 +56,19 @@ public abstract class TShape implements Serializable, Cloneable {
           this.shape = shape;
      }
 
-     public int getSelectX() {
-          return selectX;
-     }
-
-     public void setSelectX(int selectX) {
-          this.selectX = selectX;
-     }
-
-     public int getSelectY() {
-          return selectY;
-     }
-
-     public void setSelectY(int selectY) {
-          this.selectY = selectY;
-     }
-
      public double getCenterX() {
           return this.shape.getBounds2D().getCenterX();
      }
      public double getCenterY() {
           return this.shape.getBounds2D().getCenterY();
+     }
+
+     public double getChangeCenterX() {
+          return affineTransform.createTransformedShape(this.shape).getBounds2D().getCenterX();
+     }
+
+     public double getChangeCenterY() {
+          return affineTransform.createTransformedShape(this.shape).getBounds2D().getCenterY();
      }
 
      public boolean isSelected() {
@@ -101,6 +90,14 @@ public abstract class TShape implements Serializable, Cloneable {
           return this.anchors.getAnchors();
      }
 
+     public Vector<Shape> getChangeAnchors() {
+          return this.anchors.getChangeAnchors();
+     }
+
+     public Shape getChangeShape() {
+          return this.affineTransform.createTransformedShape(this.shape);
+     }
+
      public Color getFillColor() {
           return fillColor;
      }
@@ -109,12 +106,27 @@ public abstract class TShape implements Serializable, Cloneable {
           this.fillColor = fillColor;
      }
 
-     public void addAngle(double angle) {
-          this.angleList.add(angle);
+     public boolean isFirst() {
+          return first;
      }
 
-     public ArrayList<Double> getAngleList() {
-          return angleList;
+     public void setFirst(boolean first) {
+          this.first = first;
+     }
+
+     public AffineTransform getAffineTransform() {
+          return affineTransform;
+     }
+
+     public void addAngle(double angle) {
+          this.angle +=angle;
+          if (this.angle >= 360) {
+               this.angle -= 360;
+          }
+     }
+
+     public double getAngle() {
+          return angle;
      }
 
      public abstract TShape clone();
@@ -124,26 +136,27 @@ public abstract class TShape implements Serializable, Cloneable {
      }
      public abstract void resize(int x, int y);
 
-     public Rectangle setLocation(int x, int y) {
-          Rectangle rectangle = this.shape.getBounds();
-          rectangle.setLocation(x, y);
-          return rectangle;
-     }
+
 
      public void transformShape(AffineTransform affineTransform) {
           this.shape = affineTransform.createTransformedShape(this.shape);
-          this.anchors.transformShape(affineTransform);
+//          this.affineTransform.concatenate(affineTransform);
      }
 
+
+     public void transformAnchor(AffineTransform affineTransform) {
+          this.anchors.transformShape(affineTransform);
+
+     }
+
+
      public boolean contains(int x, int y) {
-          if (this.anchors.contains(x, y)) {
+          if (this.anchors.anchorContains(x, y)) {
                return true;
           }
-          return this.shape.getBounds().contains(x, y);
+          return this.affineTransform.createTransformedShape(this.shape).contains(x, y);
      }
      public void draw(Graphics2D graphics){
-          this.centerX = this.shape.getBounds().x + this.shape.getBounds().width / 2;
-          this.centerY = this.shape.getBounds().y + this.shape.getBounds().height / 2;
 
           graphics.setColor(this.lineColor);
           graphics.setStroke(new BasicStroke(strokeValue, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1.7f));
@@ -152,6 +165,7 @@ public abstract class TShape implements Serializable, Cloneable {
                graphics.setColor(this.fillColor);
                graphics.fill(this.shape);
           }
+
      }
 
      public void drawAnchors(Graphics2D graphics) {
@@ -161,6 +175,8 @@ public abstract class TShape implements Serializable, Cloneable {
      public Rectangle getBounds() {
           return this.shape.getBounds();
      }
+
+
 
 
 

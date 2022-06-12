@@ -38,7 +38,7 @@ public class FileMenu extends JMenu {
         }
     }
 
-    public void associate(DrawingPanel drawingPanel) {
+    public void init(DrawingPanel drawingPanel) {
         this.drawingPanel = drawingPanel;
     }
 
@@ -64,6 +64,7 @@ public class FileMenu extends JMenu {
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
             Object object = objectInputStream.readObject();
             this.drawingPanel.setShapes(object);
+            this.drawingPanel.loadDraw();
             objectInputStream.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -109,9 +110,6 @@ public class FileMenu extends JMenu {
         int reply = this.fileChooser.showOpenDialog(this.drawingPanel);
         if (reply == JFileChooser.APPROVE_OPTION) {
             this.file = this.fileChooser.getSelectedFile();
-            Vector<TimeShape> timeShapes = this.drawingPanel.getUndoShape();
-            timeShapes.clear();
-            this.drawingPanel.setUndoShape(timeShapes);
             load(this.file);
         } else {
             return;
@@ -145,7 +143,6 @@ public class FileMenu extends JMenu {
 
     private void newPanel() {
         Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
-        Vector<TimeShape> timeShapes = this.drawingPanel.getUndoShape();
         this.file = null;
         if (this.drawingPanel.isUpdated()) {
             int result = JOptionPane.showConfirmDialog(this, "그림판의 변경하신 내용을 저장하시겠습니까? (저장하지 않으면 병경 사항이 유실됩니다.)","새로 만들기",
@@ -157,9 +154,8 @@ public class FileMenu extends JMenu {
             }
         }
         shapes.clear();
-        timeShapes.clear();
-        this.drawingPanel.setUndoShape(timeShapes);
         this.drawingPanel.setShapes(shapes);
+        this.drawingPanel.loadDraw();
         this.drawingPanel.setUpdated(false);
     }
 

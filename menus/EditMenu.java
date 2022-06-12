@@ -20,6 +20,8 @@ public class EditMenu extends JMenu {
     private int redoTime;
     private int undoTime;
 
+    private boolean first;
+
     private int px;
     private int py;
 
@@ -36,17 +38,25 @@ public class EditMenu extends JMenu {
             jMenuItem.setAccelerator(editMenu.getKeyStroke());
             this.add(jMenuItem);
         }
+
+        this.first = true;
+
         this.px = 10;
         this.py = 10;
     }
 
-    public void associate(DrawingPanel drawingPanel) {
+    public void init(DrawingPanel drawingPanel) {
         this.drawingPanel = drawingPanel;
     }
 
     private void cut() {
         Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
         Vector<TShape> selectShapes = this.drawingPanel.getSelectShapes();
+        Vector<TShape> groupShapes = this.drawingPanel.getGroupShapes();
+        TShape group = this.drawingPanel.getGroupShape();
+        TShape currentShape = this.drawingPanel.getCurrentShape();
+        Graphics2D graphics = this.drawingPanel.getBufferGraphics();
+
         this.copyShapes.removeAllElements();
         this.px = 10;
         this.py = 10;
@@ -54,19 +64,39 @@ public class EditMenu extends JMenu {
         if (!selectShapes.isEmpty()) {
             for (TShape shape : selectShapes) {
                 this.copyShapes.add(shape);
+                shape.setSelected(false);
+                shape.draw(graphics);
+                shape.drawAnchors(graphics);
+                shapes.remove(shape);
+            }
+        } else if (currentShape.equals(group)) {
+            for (TShape shape : groupShapes) {
+                this.copyShapes.add(shape);
+                shape.setSelected(false);
+                shape.draw(graphics);
+                shape.drawAnchors(graphics);
                 shapes.remove(shape);
             }
         } else {
-            TShape shape = this.drawingPanel.getCurrentShape();
-            this.copyShapes.add(shape);
-            shapes.remove(shape);
+            this.copyShapes.add(currentShape);
+            currentShape.setSelected(false);
+            currentShape.draw(graphics);
+            currentShape.drawAnchors(graphics);
+            shapes.remove(currentShape);
         }
-
+        this.drawingPanel.setCurrentShape(null);
         this.drawingPanel.setShapes(shapes);
+        this.drawingPanel.repaint();
+        this.first = true;
     }
 
     private void copy() {
         Vector<TShape> selectShapes = this.drawingPanel.getSelectShapes();
+        Vector<TShape> groupShapes = this.drawingPanel.getGroupShapes();
+        TShape group = this.drawingPanel.getGroupShape();
+        TShape currentShape = this.drawingPanel.getCurrentShape();
+
+
         this.copyShapes.removeAllElements();
         this.px = 10;
         this.py = 10;
@@ -75,17 +105,27 @@ public class EditMenu extends JMenu {
             for (TShape shape : selectShapes) {
                 this.copyShapes.add(shape);
             }
+        } else if (currentShape.equals(group)) {
+            for (TShape shape : groupShapes) {
+                if (!shape.equals(group)) {
+                    this.copyShapes.add(shape);
+                }
+            }
         } else {
-            TShape shape = this.drawingPanel.getCurrentShape();
-            this.copyShapes.add(shape);
+            this.copyShapes.add(currentShape);
         }
+        this.first = true;
+
     }
 
     private void paste() {
+        Vector<TShape> selectedShape = this.drawingPanel.getSelectShapes();
+        Graphics2D graphics = this.drawingPanel.getBufferGraphics();
+
+
+
         if (!this.copyShapes.isEmpty()) {
             Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
-            Graphics2D graphics = (Graphics2D) this.drawingPanel.getGraphics();
-            graphics.setXORMode(this.drawingPanel.getBackground());
 
             for (TShape shape : this.copyShapes) {
                 TShape copyShape = shape.clone();
@@ -121,116 +161,169 @@ public class EditMenu extends JMenu {
                 affineTransform.translate(px, py);
                 copyShape.transformShape(affineTransform);
                 copyShape.draw(graphics);
-
                 shapes.add(copyShape);
+
+                this.drawingPanel.repaint();
 
                 this.drawingPanel.setShapes(shapes);
                 this.px += 10;
                 this.py += 10;
 
-
+                this.first = false;
             }
 
-
         }
+
     }
 
     private void delete() {
-        Graphics2D graphics = (Graphics2D) this.drawingPanel.getGraphics();
-        graphics.setXORMode(Color.white);
+        Graphics2D graphics = this.drawingPanel.getBufferGraphics();
 
         Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
         Vector<TShape> selectShapes = this.drawingPanel.getSelectShapes();
+        Vector<TShape> groupShapes = this.drawingPanel.getGroupShapes();
+        TShape group = this.drawingPanel.getGroupShape();
+        TShape currentShape = this.drawingPanel.getCurrentShape();
+
         this.copyShapes.removeAllElements();
         this.px = 10;
         this.py = 10;
 
         if (!selectShapes.isEmpty()) {
             for (TShape shape : selectShapes) {
-                if (shape.isSelected()) {
-                    shape.drawAnchors(graphics);
-                }
+                shape.setSelected(false);
+                shape.draw(graphics);
+                shape.drawAnchors(graphics);
                 shapes.remove(shape);
+                this.drawingPanel.repaint();
             }
+            selectShapes.removeAllElements();
+            this.drawingPanel.setSelectShapes(selectShapes);
+        }else if (currentShape.equals(group)) {
+            for (TShape shape : groupShapes) {
+                shape.setSelected(false);
+                shape.draw(graphics);
+                shapes.remove(shape);
+                this.drawingPanel.repaint();
+            }
+            groupShapes.removeAllElements();
+            this.drawingPanel.setGroupShapes(groupShapes,null);
         } else {
             TShape shape = this.drawingPanel.getCurrentShape();
-            if (shape.isSelected()) {
-                shape.drawAnchors(graphics);
-            }
+            shape.setSelected(false);
+            shape.drawAnchors(graphics);
+            shape.draw(graphics);
             shapes.remove(shape);
+            this.drawingPanel.repaint();
         }
+        this.drawingPanel.setCurrentShape(null);
         this.drawingPanel.setShapes(shapes);
+        this.drawingPanel.repaint();
     }
 
-    private void undo() {
-        Vector<TimeShape> undoShape = this.drawingPanel.getUndoShape();
-        Vector<TShape> drawShape = (Vector<TShape>) this.drawingPanel.getShapes();
-        if (undoShape.size() == 0) {
-            drawShape.clear();
-            this.drawingPanel.setShapes(drawShape);
+    public void undo() {
+        Vector<DrawingPanel.TimeShape> timeShapes = this.drawingPanel.getTimeShapes();
+        Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
+
+        if (timeShapes.isEmpty()) {
             return;
         }
-        else  {
-            if (undoShape.get(undoShape.size()-1).getShape() != drawShape.get(drawShape.size() - 1)) {
-                drawShape.remove(drawShape.size() - 1);
-                this.drawingPanel.setShapes(drawShape);
-            } else {
-                TShape changeShape = undoShape.get(undoShape.size()-1).getShape();
-                TShape shape = drawShape.get(drawShape.size() - 1);
-                shape.setLineColor(changeShape.getLineColor());
-                shape.setStrokeValue(changeShape.getStrokeValue());
-//                shape.resizeShape(undoShape.get(undoShape.size()-1).getRectangle());
-                drawShape.set(drawShape.size() - 1, shape);
-                this.drawingPanel.setShapes(drawShape);
-            }
-            undoShape.remove(undoShape.size()-1);
-            this.drawingPanel.setUndoShape(undoShape);
-        }
-        this.redoTime = undoShape.size() + 1;
 
-    }
-
-    private void redo() {
-        Vector<TimeShape> redoShape = this.drawingPanel.getRedoShape();
-        Vector<TimeShape> undoShape = this.drawingPanel.getUndoShape();
-        Vector<TShape> drawShape = (Vector<TShape>) this.drawingPanel.getShapes();
-
-
-        if (redoShape.size() == 0 || this.redoTime > redoShape.size()-1) {
-            return;
-        }
-        if (this.redoTime == -9999) {
-            return;
-        }else if (this.undoTime < 0 && !(this.undoTime == -9999)) {
-            this.undoTime = -2;
-            this.redoTime = 0;
+        if (this.drawingPanel.getTimeIndex() == 0 && !timeShapes.isEmpty()) {
+            this.drawingPanel.setTimeIndex(timeShapes.size()-1);
         }
 
-         if (drawShape.size() == 0) {
-                TShape shape = redoShape.get(this.redoTime).getShape();
-//                shape.resizeShape(redoShape.get(this.redoTime).getRectangle());
-                drawShape.add(shape);
-                this.drawingPanel.setShapes(drawShape);
-            }else {
-                if (redoShape.get(this.redoTime).getShape() != drawShape.get(drawShape.size() - 1)) {
-                    TShape shape = redoShape.get(this.redoTime).getShape();
-                    drawShape.add(shape);
-                    this.drawingPanel.setShapes(drawShape);
-                } else {
-                	TShape shape = drawShape.get(drawShape.size() - 1);
-                    TShape changeShape = redoShape.get(this.redoTime).getShape();
-                    shape.setLineColor(changeShape.getLineColor());
-                    shape.setStrokeValue(changeShape.getStrokeValue());
-//                    shape.resizeShape(redoShape.get(this.redoTime).getRectangle());
-                    drawShape.set(drawShape.size() - 1, shape);
-                    this.drawingPanel.setShapes(drawShape);
+
+        Graphics2D graphics2D = this.drawingPanel.getBufferGraphics();
+
+        TShape undoShape = timeShapes.get(this.drawingPanel.getTimeIndex()).getShape();
+        TShape undoDrawShape = timeShapes.get(this.drawingPanel.getTimeIndex()).getCopyShape();
+
+        boolean remove = true;
+
+        for (TShape shape : shapes) {
+            if (shape.equals(undoShape)) {
+                for (int i = 0; i < this.drawingPanel.getTimeIndex(); i++) {
+                    if (timeShapes.get(i).getShape().equals(shape)) {
+                        remove = false;
+                    }
                 }
-             undoShape.add(redoShape.get(this.redoTime));
-            }
 
-        this.redoTime++;
-        this.undoTime = this.redoTime -2;
+                int index = shapes.indexOf(shape);
+                shape.draw(graphics2D);
+                if (remove == false) {
+                    undoDrawShape.draw(graphics2D);
+                    shapes.set(index, undoDrawShape);
+                } else {
+                    shapes.remove(shape);
+                }
+                this.drawingPanel.setTimeIndex(this.drawingPanel.getTimeIndex()-1);
+                this.drawingPanel.setShapes(shapes);
+                this.drawingPanel.repaint();
+                return;
+            }
+        }
+
+        undoDrawShape.draw(graphics2D);
+        shapes.add(undoDrawShape);
+        this.drawingPanel.setShapes(shapes);
+        this.drawingPanel.setTimeIndex(this.drawingPanel.getTimeIndex()-1);
+        this.drawingPanel.repaint();
+        return;
     }
+    public void redo() {
+        Vector<DrawingPanel.TimeShape> timeShapes = this.drawingPanel.getTimeShapes();
+        Vector<TShape> shapes = (Vector<TShape>) this.drawingPanel.getShapes();
+
+        if (timeShapes.isEmpty()) {
+            return;
+        }
+
+        if (this.drawingPanel.getTimeIndex() > timeShapes.size() && timeShapes.isEmpty()) {
+            return;
+        } else {
+            this.drawingPanel.setTimeIndex(this.drawingPanel.getTimeIndex()+1);
+        }
+
+
+        Graphics2D graphics2D = this.drawingPanel.getBufferGraphics();
+
+        TShape redoShape = timeShapes.get(this.drawingPanel.getTimeIndex()).getShape();
+        TShape redoDrawShape = timeShapes.get(this.drawingPanel.getTimeIndex()).getCopyShape();
+
+        boolean add = true;
+
+        for (TShape shape : shapes) {
+            if (shape.equals(redoShape)) {
+                for (int i = 0; i < this.drawingPanel.getTimeIndex(); i++) {
+                    if (timeShapes.get(i).getShape().equals(shape)) {
+                        add = false;
+                    }
+                }
+                int index = shapes.indexOf(shape);
+                shape.draw(graphics2D);
+                if (add == false) {
+                    redoDrawShape.draw(graphics2D);
+                    shapes.set(index, redoDrawShape);
+                } else {
+                    redoDrawShape.draw(graphics2D);
+                    shapes.add(redoDrawShape);
+                }
+                this.drawingPanel.setTimeIndex(this.drawingPanel.getTimeIndex()+1);
+                this.drawingPanel.setShapes(shapes);
+                this.drawingPanel.repaint();
+                return;
+            }
+        }
+
+        redoDrawShape.draw(graphics2D);
+        shapes.add(redoDrawShape);
+        this.drawingPanel.setShapes(shapes);
+        this.drawingPanel.setTimeIndex(this.drawingPanel.getTimeIndex()-1);
+        this.drawingPanel.repaint();
+        return;
+    }
+
 
     private class ActionHandler implements ActionListener {
 

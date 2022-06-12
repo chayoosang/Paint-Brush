@@ -2,13 +2,17 @@ package frames;
 
 import global.Constants.ETools;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 public class ToolBar extends JToolBar {
 
@@ -17,6 +21,8 @@ public class ToolBar extends JToolBar {
     private JButton fillColorButton;
     private SpinnerNumberModel strokeModel;
     private JSpinner strokeSelect;
+    private JComboBox<String> fontSelect;
+    private String font[] = {"Serif", "SanSerif", "monospaced", "Dialog"};
 
     private BufferedImage lineColorImage;
     private BufferedImage fillColorImage;
@@ -25,7 +31,6 @@ public class ToolBar extends JToolBar {
 
     //associations
     private DrawingPanel drawingPanel;
-
 
 
     public ToolBar() {
@@ -48,13 +53,13 @@ public class ToolBar extends JToolBar {
             this.add(toolButton);
         }
 
-        this.lineColorButton = new JButton("LineColor");
+        this.lineColorButton = new JButton("Line");
         this.lineColorButton.setToolTipText("색을 선택해주세요.");
         this.lineColorButton.addActionListener(actionHandler);
         this.lineColorButton.setIcon(new ImageIcon(lineColorImage));
         this.add(lineColorButton);
 
-        this.fillColorButton = new JButton("FillColor");
+        this.fillColorButton = new JButton("Fill");
         this.fillColorButton.setToolTipText("색을 선택해주세요.");
         this.fillColorButton.addActionListener(actionHandler);
         this.setLineColorImage(Color.white, fillColorImage);
@@ -66,8 +71,11 @@ public class ToolBar extends JToolBar {
         this.strokeSelect.addChangeListener(changeHandler);
         this.add(strokeSelect);
 
-
+        this.fontSelect = new JComboBox(font);
+        this.fontSelect.addActionListener(actionHandler);
+        this.add(fontSelect);
     }
+
     private ImageIcon imageChange(ImageIcon icon, int x, int y) {
         Image img = icon.getImage();
         Image changeImg = img.getScaledInstance(x, y, Image.SCALE_SMOOTH);
@@ -94,17 +102,38 @@ public class ToolBar extends JToolBar {
     }
 
     public void setLineColorImage(Color color, BufferedImage bufferedImage) {
-    	 Graphics2D graphics = bufferedImage.createGraphics();
-         graphics.setColor(color);
-         graphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
-         graphics.dispose();
-         this.repaint();
+        Graphics2D graphics = bufferedImage.createGraphics();
+        graphics.setColor(color);
+        graphics.fillRect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight());
+        graphics.dispose();
+        this.repaint();
     }
 
-    public void associate(DrawingPanel drawingPanel) {
+    public void init(DrawingPanel drawingPanel) {
         this.drawingPanel = drawingPanel;
-        JRadioButton defaultButton =  (JRadioButton) this.getComponent(ETools.eSelection.ordinal());
+        JRadioButton defaultButton = (JRadioButton) this.getComponent(ETools.eSelection.ordinal());
         defaultButton.doClick();
+    }
+
+    private void selectImage() {
+        File file = null;
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.addChoosableFileFilter(new FileNameExtensionFilter("Images", "jpg", "png", "gif", "bmp"));
+        int reply = fileChooser.showOpenDialog(this.drawingPanel);
+        if (reply == JFileChooser.APPROVE_OPTION) {
+            file = fileChooser.getSelectedFile();
+        }
+        if (file != null) {
+            ImageIcon image = new ImageIcon(String.valueOf(file));
+            this.drawingPanel.setSelectImage(image);
+        }
+
+    }
+
+    private void setFont() {
+        String font = fontSelect.getSelectedItem().toString();
+        this.drawingPanel.setFont(font);
     }
 
 
@@ -116,12 +145,18 @@ public class ToolBar extends JToolBar {
                 setLineColor();
             } else if (e.getSource() == fillColorButton) {
                 setFillColor();
+            }  else if (e.getSource() == fontSelect) {
+                setFont();
+            }else if (e.getActionCommand().equals(ETools.eImage.name())) {
+                selectImage();
+                drawingPanel.setSelectedTool(ETools.valueOf(e.getActionCommand()));
             } else {
                 drawingPanel.setSelectedTool(ETools.valueOf(e.getActionCommand()));
             }
         }
 
     }
+
 
     private class ChangeHandler implements ChangeListener {
 
@@ -130,7 +165,6 @@ public class ToolBar extends JToolBar {
             setStroke();
         }
     }
-
 
 
 }

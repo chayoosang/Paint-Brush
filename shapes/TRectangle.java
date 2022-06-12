@@ -34,8 +34,6 @@ public class TRectangle extends TShape {
         } else {
             rectangle.setFrame(rectangle.getX(), rectangle.getY(), x - rectangle.getX(), y - rectangle.getY());
         }
-        this.centerX = rectangle.x + rectangle.width / 2;
-        this.centerY = rectangle.y + rectangle.height / 2;
     }
 
 

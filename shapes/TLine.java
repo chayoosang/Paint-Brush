@@ -11,12 +11,14 @@ public class TLine extends TShape {
 
     public TLine() {
         this.shape = new Line2D.Double();
+        this.anchors.setLine(true);
     }
 
     @Override
     public void prepareDrawing(int x, int y) {
         this.x1 = x;
         this.y1 = y;
+
     }
 
 

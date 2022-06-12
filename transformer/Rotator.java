@@ -1,5 +1,6 @@
 package transformer;
 
+import frames.DrawingPanel;
 import shapes.TShape;
 
 import java.awt.*;
@@ -40,6 +41,7 @@ public class Rotator extends Transformer {
         if (!this.selectShapes.isEmpty()) {
             for (TShape shape : this.selectShapes) {
                 AffineTransform affineTransform = new AffineTransform();
+                AffineTransform anchorAffineTransform = new AffineTransform();
                 shape.draw(graphics);
                 this.center.setLocation(
                         shape.getCenterX(),
@@ -47,15 +49,20 @@ public class Rotator extends Transformer {
                 );
                 shape.addAngle(rotateAngle);
                 affineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX(), center.getY());
+                anchorAffineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX()-5, center.getY()-5);
                 shape.transformShape(affineTransform);
+                shape.transformAnchor(anchorAffineTransform);
                 shape.draw(graphics);
             }
         } else {
             AffineTransform affineTransform = new AffineTransform();
+            AffineTransform anchorAffineTransform = new AffineTransform();
             this.selectShape.draw(graphics);
             this.selectShape.addAngle(rotateAngle);
             affineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX(), center.getY());
+            anchorAffineTransform.setToRotation(Math.toRadians(rotateAngle), center.getX()-5, center.getY()-5);
             this.selectShape.transformShape(affineTransform);
+            this.selectShape.transformAnchor(anchorAffineTransform);
             this.selectShape.draw(graphics);
 
         }
@@ -65,16 +72,22 @@ public class Rotator extends Transformer {
     }
 
     @Override
-    public void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes) {
+    public void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes, Vector<DrawingPanel.TimeShape> timeShapes) {
+
+
         if (!this.selectShapes.isEmpty()) {
             for (TShape shape : this.selectShapes) {
                 int index = shapes.indexOf(shape);
                 shapes.set(index, shape);
+                timeShapes.add(new DrawingPanel.TimeShape(this.selectShape));
             }
         } else {
             int index = shapes.indexOf(this.selectShape);
             shapes.set(index, this.selectShape);
+            timeShapes.add(new DrawingPanel.TimeShape(this.selectShape));
         }
+
+
 
     }
 }

@@ -1,5 +1,6 @@
 package transformer;
 
+import frames.DrawingPanel;
 import shapes.TShape;
 import global.Constants.*;
 
@@ -22,27 +23,32 @@ public class Resizer extends Transformer {
 
     @Override
     public void keep(int x, int y, Graphics2D graphics, Image image) {
-        AffineTransform affineTransform = new AffineTransform();
+
         Point2D scaleFactor = computeScaleFactor(this.previous, new Point2D.Double(x, y));
 
         if (!this.selectShapes.isEmpty()) {
             for (TShape shape : this.selectShapes) {
+                AffineTransform affineTransform = new AffineTransform();
                 shape.setSelectAnchors(this.selectShape.getSelectAnchors());
                 shape.draw(graphics);
                 Point2D resizeOrigin = this.getResizeAnchor(shape);
                 affineTransform.translate(resizeOrigin.getX(), resizeOrigin.getY());
                 affineTransform.scale(scaleFactor.getX(), scaleFactor.getY());
                 affineTransform.translate(-resizeOrigin.getX(), -resizeOrigin.getY());
+
                 shape.transformShape(affineTransform);
+                shape.transformAnchor(affineTransform);
                 shape.draw(graphics);
             }
         } else {
+            AffineTransform affineTransform = new AffineTransform();
             this.selectShape.draw(graphics);
             Point2D resizeOrigin = this.getResizeAnchor(this.selectShape);
             affineTransform.translate(resizeOrigin.getX(), resizeOrigin.getY());
             affineTransform.scale(scaleFactor.getX(), scaleFactor.getY());
             affineTransform.translate(-resizeOrigin.getX(), -resizeOrigin.getY());
             this.selectShape.transformShape(affineTransform);
+            this.selectShape.transformAnchor(affineTransform);
             this.selectShape.draw(graphics);
         }
 
@@ -94,8 +100,10 @@ public class Resizer extends Transformer {
                 ph = cy - py;
                 break;
         }
-        double cw = this.selectShape.getBounds().getWidth();
-        double ch = this.selectShape.getBounds().getHeight();
+        Shape changeShape = this.selectShape.getChangeShape();
+
+        double cw = changeShape.getBounds().getWidth();
+        double ch = changeShape.getBounds().getHeight();
 
         double xFactor = 1.0;
         if (cw > 0.0) {
@@ -146,8 +154,9 @@ public class Resizer extends Transformer {
 
 
     @Override
-    public void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes) {
+    public void finish(int x, int y, Graphics2D graphics2D, Vector<TShape> shapes, Vector<DrawingPanel.TimeShape> timeShapes) {
         int index = shapes.indexOf(this.selectShape);
         shapes.set(index, this.selectShape);
+        timeShapes.add(new DrawingPanel.TimeShape(this.selectShape));
     }
 }

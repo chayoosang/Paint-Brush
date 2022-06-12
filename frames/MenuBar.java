@@ -4,6 +4,7 @@ import menus.EditMenu;
 import menus.FileMenu;
 
 import javax.swing.*;
+import java.util.Locale;
 
 public class MenuBar extends JMenuBar {
     //components
@@ -12,6 +13,11 @@ public class MenuBar extends JMenuBar {
     private DrawingPanel drawingPanel;
 
     public MenuBar() {
+        String osName = System.getProperty("os.name").toLowerCase();
+        boolean isMac = osName.startsWith("mac os x");
+        if (isMac) {
+            System.setProperty("apple.laf.useScreenMenuBar", "true");
+        }
 
         //components
         this.fileMenu = new FileMenu("File");
@@ -21,12 +27,13 @@ public class MenuBar extends JMenuBar {
         this.add(editMenu);
 
 
+
     }
 
-    public void associate(DrawingPanel drawingPanel) {
+    public void init(DrawingPanel drawingPanel) {
         this.drawingPanel = drawingPanel;
-        this.fileMenu.associate(this.drawingPanel);
-        this.editMenu.associate(this.drawingPanel);
+        this.fileMenu.init(this.drawingPanel);
+        this.editMenu.init(this.drawingPanel);
     }
 
 
